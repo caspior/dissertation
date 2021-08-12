@@ -8,20 +8,19 @@ Loading the data:
 ```{r}
 # The database is available to download from https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing
 
-micromobility <- read.csv("Dockless_Vehicle_Trips 3-27.csv")
-N <- nrow(micromobility)
+dockless <- read.csv("Dockless_Vehicle_Trips 3-27.csv")
+N <- nrow(dockless)
 ```
 
 Generate dates:
 ```{r}
-micromobility$date <- as.character(micromobility$Start.Time)
-micromobility$date <- substr(micromobility$date, 1, 10)
-micromobility$date <- as.Date(micromobility$date, "%m/%d/%Y")
+dockless$date <- as.character(dockless$Start.Time)
+dockless$date <- substr(dockless$date, 1, 10)
+dockless$date <- as.Date(dockless$date, "%m/%d/%Y")
 ```
 
-Slicing the examined period and counting scooters and e-bike trips (before cleaning):
+Counting scooters and e-bike trips (before cleaning):
 ```{r}
-dockless <- micromobility[which(micromobility$date>='2018-08-16' & micromobility$date<'2019-03-01'),]
 S <- nrow(dockless[which(dockless$Vehicle.Type=='scooter'),])
 B <- nrow(dockless[which(dockless$Vehicle.Type=='bicycle'),])
 print(paste("Scooter trips:",S))
@@ -139,9 +138,6 @@ B <- b
 
 Export database:
 ```{r}
-saveRDS(dockless, "DocklessAF.rds")
-```
-```{r}
-#write.csv(dockless, "DocklessAF.csv")
+saveRDS(dockless, "Dockless.rds")
 ```
 
