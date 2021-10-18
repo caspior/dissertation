@@ -9,3 +9,13 @@ The dissertation icludes three analytical:
 3. Evaluation of E-Scooter Media Coverage
 
 The full dissertation is available [here](https://www.dropbox.com/s/jb3zaelrjswincd/Caspi%20Dissertation%20Final.pdf?dl=0)
+
+These are the following tasks in this project:
+- Chapter 1:
+  - Upload R files for data preparation
+  - Upload Python files for GIS analysis
+  - Create a dashboard to present descriptive statistics
+  - Upload regression and RF R/Python files
+  - Add regression and RF results to dashboard
+ - Chapter 2
+ - Chapter 3
