@@ -4,7 +4,7 @@ In this repository I present my dissertation analysis.
 Although I have submitted my dissertation, this repository is a work in progress.
 
 The dissertation icludes three analytical:
-1. Shared Micromobility Usage Patterns in Austin, Texas
+1. [Shared Micromobility Usage Patterns in Austin, Texas](Austin.MD)
 2. Equity Implications of Electric Bikesharing in Philadelphia
 3. Evaluation of E-Scooter Media Coverage
 
