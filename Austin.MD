@@ -5,4 +5,5 @@ In this chapter, I examine dockless e-scooter and e-bike sharing usage patterns 
 
 ### Data
 All the data in this research obtained from openly available online databases.
-- Austin's dockless micromobility trip logs retrieved from [the official City of Austin open data portal](https://data.austintexas.gov/Transportation-and-Mobility/Shared-Micromobility-Vehicle-Trips/7d8e-dm7r/data) on March 28th 2019. [The dataset I retrieved](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) includes trip start and end coordinates which are masked in newer trip logs.
+- Austin's dockless micromobility trip log retrieved from [the official City of Austin open data portal](https://data.austintexas.gov/Transportation-and-Mobility/Shared-Micromobility-Vehicle-Trips/7d8e-dm7r/data) on March 28th 2019. [The dataset I retrieved](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) includes trip start and end coordinates which are masked in newer trip logs. I cleaned and prepared the dockless trip log with this [script](Aus_cleaning.R).
+- Austin's bikesharing trip log was also retrieved from [the official City of Austin open data portal](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s). I cleaned and prepared the bikesharing trip log with this [script](Aus_clening_B.R).
