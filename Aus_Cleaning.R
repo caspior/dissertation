@@ -1,20 +1,25 @@
 
-#Loading the data:
+## Preparing Austin's dockless micromobility trip logs for analysis
 
-#The database is available to download from https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing
+
+# Loading the data:
+
+# The database is available to download from https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing
+
+library(foreign)
 
 micromobility <- read.csv("Dockless_Vehicle_Trips 3-27.csv")
 N <- nrow(micromobility)
 
 
-#Generate dates:
+# Generate dates:
 
 micromobility$date <- as.character(micromobility$Start.Time)
 micromobility$date <- substr(micromobility$date, 1, 10)
 micromobility$date <- as.Date(micromobility$date, "%m/%d/%Y")
 
 
-#Slicing the examined period and counting scooters and e-bike trips (before cleaning):
+# Slicing the examined period and counting scooters and e-bike trips (before cleaning):
 
 dockless <- micromobility[which(micromobility$date>='2018-08-16' & micromobility$date<'2019-03-01'),]
 S <- nrow(dockless[which(dockless$Vehicle.Type=='scooter'),])
@@ -23,14 +28,15 @@ print(paste("Scooter trips:",S))
 print(paste("Bicycle trips:",B))
 
 
-#Day names:
+# Day names:
 
 dockless$dayname <- weekdays(dockless$date)
 
 
-#Generate times:
+# Generate times:
 
 library(lubridate)
+
 dockless$time_start <- as.character(dockless$Start.Time)
 dockless$time_start <- substr(dockless$time_start, 1, 23)
 dockless$time_start <- parse_date_time(dockless$time_start, '%m/%d/%Y %I:%M:%S %p')
@@ -40,11 +46,11 @@ dockless$time_end <- substr(dockless$time_end, 1, 23)
 dockless$time_end <- parse_date_time(dockless$time_end, '%m/%d/%Y %I:%M:%S %p')
 
 
-#Flag holidays:
+# Flag holidays:
 
 dockless$holiday <- 0
 
-#Source - https://comptroller.texas.gov/about/holidays.php
+# Source - https://comptroller.texas.gov/about/holidays.php
 
 dockless[c(which(dockless$date=="2018-08-27")),"holiday"] <- 1 #Lyndon Baines Johnson Day
 dockless[c(which(dockless$date=="2018-09-03")),"holiday"] <- 1 #Labor Day
@@ -58,7 +64,7 @@ dockless[c(which(dockless$date=="2019-01-21")),"holiday"] <- 1 #Martin Luther Ki
 dockless[c(which(dockless$date=="2019-02-18")),"holiday"] <- 1 #Presidents' Day
 
 
-#Flag weekends:
+# Flag weekends:
 
 dockless$weekend <- 0
 dockless[c(which(dockless$Day.of.Week==0)),"weekend"] <- 1
@@ -66,10 +72,10 @@ dockless[c(which(dockless$Day.of.Week==6)),"weekend"] <- 1
 dockless[c(which(dockless$holiday==1)),"weekend"] <- 1
 
 
-##Cleaning
+## Cleaning
 
 
-#If exceeds 50 miles:
+# If exceeds 50 miles:
 
 dockless <- dockless[c(which(dockless$Trip.Distance<=80000)),]
 dockless <- dockless[c(which(dockless$Trip.Distance>0)),]
@@ -84,7 +90,7 @@ S <- s
 B <- b
 
 
-#If exceeds 12 hours:
+# If exceeds 12 hours:
 
 dockless <- dockless[c(which(dockless$Trip.Duration<=43200)),]
 dockless <- dockless[c(which(dockless$Trip.Duration>0)),]
@@ -99,7 +105,7 @@ S <- s
 B <- b
 
 
-#If exceeds 50 km/h:
+# If exceeds 50 km/h:
 
 dockless$speed <- dockless$Trip.Distance/dockless$Trip.Duration*3.6
 dockless <- dockless[c(which(dockless$speed<=50)),]
@@ -114,7 +120,7 @@ S <- s
 B <- b
 
 
-#If out of bounds:
+# If out of bounds:
 
 dockless <- dockless[c(which(dockless$Origin.Cell.ID!="OUT_OF_BOUNDS")),]
 dockless <- dockless[c(which(dockless$Destination.Cell.ID!="OUT_OF_BOUNDS")),]
@@ -137,6 +143,7 @@ S <- s
 B <- b
 
 
-#Export database:
+# Export database:
 
 saveRDS(dockless, "DocklessAF.rds")
+
