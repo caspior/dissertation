@@ -31,11 +31,11 @@ selected_layer = iface.addVectorLayer("grid.shp", '', 'ogr')
 
 # Refining grid by Austin's Boundaries
 
-boundary_path = "BOUNDARIES_jurisdictions/geo_export_498cd848-1828-48cf-a5c5-bdc10f628774.shp" #geometry problems!!
+boundary_path = "https://opendata.arcgis.com/datasets/09cd5b6811c54857bd3856b5549e34f0_0.geojson"
 boundaries = QgsVectorLayer(boundary_path, "boundaries", "ogr")
 QgsProject.instance().addMapLayer(boundaries)
 
-boundaries.selectByExpression(" \"globalid\" = '6a4e125f-2404-48fb-8c88-8697bfa0a306' ")
+boundaries.selectByExpression(" \"CITY_NM\" = 'Austin' ")
 
 _writer = QgsVectorFileWriter.writeAsVectorFormat(boundaries, "austin", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
 selected_layer = iface.addVectorLayer("austin.shp", '', 'ogr')
