@@ -146,4 +146,5 @@ B <- b
 # Export database:
 
 saveRDS(dockless, "DocklessAF.rds")
+write.csv(dockless, "dockless.csv")
 
