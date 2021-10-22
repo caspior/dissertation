@@ -9,7 +9,7 @@ All the data in this research obtained from openly available online databases.
 - Austin's bikesharing trip log was also retrieved from [the official City of Austin open data portal](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s). I cleaned and prepared the bikesharing trip log with this [script](Aus_Cleaning_B.R).
 - From the [USA Census Bureau](https://data.census.gov/), I retrieved the American Community Survey (ACS) 2014-2018 5-year estimates. I retrieved the total population (variable B01003), sex (B01001), race (B02001), median income by household (B19013), poverty status by household (B17017), school enrollment (B14007), and the aggregate number of total vehicles available in the Census Block Group (B25046).
 - Shapefile for Census Block Groups retrieved from [TIGER](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Block+Groups).
-- Other shapefiles including land use, street network, bus stops, and others downloaded from [the official City of Austin open data portal](https://data.austintexas.gov/):
+- Other shapefiles downloaded from [the official City of Austin open data portal](https://data.austintexas.gov/):
   -  [City boundaries](https://data.austintexas.gov/Locations-and-Maps/BOUNDARIES_jurisdictions/3pzb-6mbr)
 
 ### GIS
