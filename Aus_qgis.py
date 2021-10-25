@@ -43,6 +43,28 @@ uri = "file:///C:/Users/orcas/Documents/GitHub/dissertation/dockless.csv?encodin
 ends = QgsVectorLayer(uri,"Ends","delimitedtext")
 #QgsProject.instance().addMapLayer(ends)
 
+_writer = QgsVectorFileWriter.writeAsVectorFormat(starts, "trips/starts_all", 'utf-8', driverName='ESRI Shapefile', onlySelected=False)
+
+_writer = QgsVectorFileWriter.writeAsVectorFormat(ends, "trips/ends_all", 'utf-8', driverName='ESRI Shapefile', onlySelected=False)
+
+starts.selectByExpression(" \"numeric_stime\" >= 7 and  \"numeric_stime\" <= 10 and \"weekend\" = 0")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(starts, "trips/starts_mornings", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+
+ends.selectByExpression(" \"numeric_stime\" >= 7 and  \"numeric_stime\" <= 10 and \"weekend\" = 0")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(ends, "trips/ends_mornings", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+
+starts.selectByExpression(" \"numeric_stime\" >= 16 and  \"numeric_stime\" <= 19 and \"weekend\" = 0")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(starts, "trips/starts_evenings", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+
+ends.selectByExpression(" \"numeric_stime\" >= 16 and  \"numeric_stime\" <= 19 and \"weekend\" = 0")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(ends, "trips/ends_evenings", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+
+starts.selectByExpression(" \"weekend\" = 1")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(starts, "trips/starts_weekends", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+
+ends.selectByExpression(" \"weekend\" = 1")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(ends, "trips/ends_weekends", 'utf-8', driverName='ESRI Shapefile', onlySelected=True)
+del(_writer)
  
 # Aggregating trips
 
@@ -63,21 +85,14 @@ def agg_field(agg):
 
 def agg_trips(grid,direction,time):
     agg = direction + '_' + time
-    path = 'counts/' + agg + '.shp'
-    if direction=='ends':
-        direction_points = ends
-    elif direction=='strats':
-        direction_points = starts
-    else:
-        print("Direction is wrong")
-    #processing.run("qgis:joinbylocationsummary", {'INPUT':grid, 'JOIN':direction_points, 'OUTPUT':path})
+    trips =  'trips/' + agg + '.shp'
+    output = 'counts/' + agg + '.shp'
+    processing.run("qgis:joinbylocationsummary", {'INPUT':grid, 'JOIN':trips, 'OUTPUT':output})
     
-    #agg_field(agg)
+    agg_field(agg)
 
-    #fields = ['left', 'top', 'right', 'bottom', 'field_1_co', 'ID_count', 'Device.ID_', 'Vehicle.Ty', 'Trip.Durat', 'Trip.Dista', 'Start.Time', 'End.Time_c', 'Modified.D', 'Month_coun', 'Hour_count', 'Day.of.Wee', 'Council.Di', 'Council._1', 'Origin.Cel', 'Destinatio', 'Year_count', 'Start.Lati', 'Start.Long', 'End.Latitu', 'End.Longit', 'date_count', 'dayname_co', 'time_start', 'numeric_st', 'time_end_c', 'holiday_co', 'weekend_co', 'speed_coun']
-    #path2 = path + '2'
-    #processing.run('native:deletecolumn', {'INPUT':path, 'COLUMN':fields, 'OUTPUT':path2})
+    fields = ['left', 'top', 'right', 'bottom', 'field_1_co', 'ID_count', 'Device.ID_', 'Vehicle.Ty', 'Trip.Durat', 'Trip.Dista', 'Start.Time', 'End.Time_c', 'Modified.D', 'Month_coun', 'Hour_count', 'Day.of.Wee', 'Council.Di', 'Council._1', 'Origin.Cel', 'Destinatio', 'Year_count', 'Start.Lati', 'Start.Long', 'End.Latitu', 'End.Longit', 'date_count', 'dayname_co', 'time_start', 'numeric_st', 'time_end_c', 'holiday_co', 'weekend_co', 'speed_coun']
+    output2 = 'counts/' + agg + '2.shp'
+    processing.run('native:deletecolumn', {'INPUT':output, 'COLUMN':fields, 'OUTPUT':output2})
 
-
-## All starts
 agg_trips("austin_grid_sp.shp","starts","all")
