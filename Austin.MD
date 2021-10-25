@@ -10,6 +10,6 @@ All the data in this research obtained from openly available online databases.
 - From the [USA Census Bureau](https://data.census.gov/), I retrieved the American Community Survey (ACS) 2014-2018 5-year estimates. I retrieved the total population (variable B01003), sex (B01001), race (B02001), median income by household (B19013), poverty status by household (B17017), school enrollment (B14007), and the aggregate number of total vehicles available in the Census Block Group (B25046).
 - Shapefiles retrieved from various sources:
   - Census Block Groups - [TIGER](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Block+Groups).
-  - City boundaries - [Texas DOT](https://gis-txdot.opendata.arcgis.com/datasets/09cd5b6811c54857bd3856b5549e34f0_0/explore?location=30.362930%2C-97.686558%2C11.42).
+  - City boundaries - [TIGER](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Places).
 
 ### GIS
