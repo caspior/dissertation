@@ -103,3 +103,7 @@ for direction in directions:
     for time in times:
         agg_trips(path,direction,time)
         path = 'counts/' + direction + '_' + time + '.shp'
+
+grid_trips = QgsVectorLayer(path,"","ogr")
+_writer = QgsVectorFileWriter.writeAsVectorFormat(grid_trips, "grid_trips", 'utf-8', driverName='ESRI Shapefile', onlySelected=False)
+del(_writer)
