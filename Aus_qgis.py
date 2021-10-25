@@ -72,7 +72,7 @@ def agg_field(agg):
     path = 'counts/' + agg + '.shp'
     layer = QgsVectorLayer(path, agg, "ogr")
     pv = layer.dataProvider()
-    pv.addAttributes([QgsField(agg, QVariant.Int)])
+    pv.addAttributes([QgsField(agg[:10], QVariant.Int)])
     layer.updateFields()
     expression = QgsExpression('"ID_count"')
     context = QgsExpressionContext()
@@ -80,7 +80,7 @@ def agg_field(agg):
     with edit(layer):
         for f in layer.getFeatures():
             context.setFeature(f)
-            f[agg] = expression.evaluate(context)
+            f[agg[:10]] = expression.evaluate(context)
             layer.updateFeature(f)
 
 def agg_trips(grid,direction,time):
@@ -95,4 +95,11 @@ def agg_trips(grid,direction,time):
     output2 = 'counts/' + agg + '2.shp'
     processing.run('native:deletecolumn', {'INPUT':output, 'COLUMN':fields, 'OUTPUT':output2})
 
-agg_trips("austin_grid_sp.shp","starts","all")
+directions = ["starts","ends"]
+times = ["all","mornings","evenings","weekends"]
+
+path = 'austin_grid_sp.shp'
+for direction in directions:
+    for time in times:
+        agg_trips(path,direction,time)
+        path = 'counts/' + direction + '_' + time + '.shp'
