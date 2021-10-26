@@ -11,5 +11,6 @@ All the data in this research obtained from openly available online databases.
 - Shapefiles retrieved from various sources:
   - Census Block Groups - [TIGER](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Block+Groups).
   - City boundaries - [TIGER](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Places).
+  - Land uses - [the official City of Austin open data portal](https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/fj9m-h5qy)
 
 ### GIS
