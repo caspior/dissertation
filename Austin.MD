@@ -12,6 +12,7 @@ All the data in this research obtained from openly available online databases.
   - Census Block Groups - [TIGER US Census Bureau](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Block+Groups).
   - City boundaries - [TIGER US Census Bureau](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Places).
   - Land uses - [the official City of Austin open data portal](https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/fj9m-h5qy).
+  - Bikways were retrieved from [Open Street Map](https://www.openstreetmap.org/) using the [QhickOSM](https://plugins.qgis.org/plugins/QuickOSM/) plugin for QGIS.
 
 ### GIS
 For the purpose of advanced statistics and machine learning I aggregated the trips by polygons using this [PyQGIS script](Aus_trips.py). I created a 0.001x0.001 degrees grid over the city of Austin and aggregated trips starts and ends for the entire examined period (Aug 16th 2018 - Feb 28th 2019), only weekday morning trips, only weekday evening trips, and only weekend and holiday trips.
