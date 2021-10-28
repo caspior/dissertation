@@ -1,0 +1,708 @@
+---
+title: "Chapter 3 -Descriptive Statistics"
+author: "Or Caspi"
+date: "10/28/2021"
+output: html_document
+---
+
+# Correlation Matrix
+
+```{r}
+library(foreign)
+
+setwd("C:/Users/orcas/Documents/GitHub/dissertation/") 
+grid <- read.dbf("Aus_grid.dbf")  #File is available in the repository
+```
+
+```{r fig.height=10}
+library(corrplot)
+
+corrplot(cor(grid[c(2:8,97:98,96,12,95,10:11,13:15,99,16,90:93,17)]), method="number", type="lower")
+```
+
+# Preparing combined trip dataset:
+
+### Import dockless dataset
+```{r message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+dockless <- readRDS("DocklessAF.rds") #File is an output of Aus_Cleaning.R
+```
+
+### Convert 'bicycle' to 'e-bike'
+```{r}
+dockless$Vehicle.Type <- as.character(dockless$Vehicle.Type)
+dockless[which(dockless$Vehicle.Type=="bicycle"),3] <- "e-bike"
+```
+
+### Refine fields
+```{r}
+new_dockless <- dockless[,1:2]
+new_dockless$ID <- as.character(dockless$ID)
+new_dockless$Device.ID <- as.character(dockless$Device.ID)
+new_dockless$Vehicle.Type <- dockless$Vehicle.Type
+new_dockless$Trip.Duration.Minutes <- dockless$Trip.Duration/60
+new_dockless$Trip.Distance <- dockless$Trip.Distance
+new_dockless$date <- dockless$date
+new_dockless$dayname <- dockless$dayname
+new_dockless$Day.of.Week <- dockless$Day.of.Week
+new_dockless$numeric_stime <- dockless$numeric_stime
+new_dockless$weekend <- dockless$weekend
+```
+
+### Load and merge bikesharing dataset and OD distance matrix
+```{r}
+docked <- readRDS("bcycle.rds") # File is an output of Aus_Cleaning_B.R
+OD <- read.csv("OD_matrix.csv") #File is available in the repository
+#dockedAF <- docked[which(docked$date>="2018-08-16" & docked$date<"2019-03-01"),]
+```
+```{r}
+docked$Name <- paste0(docked$Checkout.Kiosk.ID," - ",docked$Return.Kiosk.ID)
+docked2 <- merge(docked, OD, by="Name")
+```
+
+### Generate times
+```{r}
+docked2$Checkout.Time2 <- as.character(docked2$Checkout.Time)
+docked2$Checkout.Time3 <- parse_date_time(docked2$Checkout.Time2,'%H:%M:%S')
+docked2$numeric_stime <- hour(docked2$Checkout.Time3) + minute(docked2$Checkout.Time3)/60
+```
+
+### Refine fields
+```{r}
+new_docked <- docked2[,1:2]
+new_docked$ID <- as.character(docked[[2]])
+new_docked$Device.ID <- as.character(docked2$Bicycle.ID)
+new_docked <- new_docked[,-c(1,2)]
+new_docked$Vehicle.Type <- "bicycle"
+new_docked$Trip.Duration.Minutes <- as.numeric(docked2$Trip.Duration.Minutes)
+new_docked$Trip.Distance <- docked2$Total_Meters
+new_docked$date <- docked2$date
+new_docked$dayname <- docked2$dayname
+new_docked$Day.of.Week <- docked2$Day.of.Week
+new_docked$numeric_stime <- docked2$numeric_stime
+new_docked$weekend <- docked2$weekend
+```
+
+
+### Combine dockless and docked
+```{r}
+micromobility <- rbind(new_dockless,new_docked)
+micromobility$speed <- (micromobility$Trip.Distance/1000)/(micromobility$Trip.Duration.Minutes/60)
+```
+
+### Total trips timeline
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(date),binwidth=2, color="springgreen4",size=0.7) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(date),binwidth=2, color="dodgerblue",size=0.7) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter"),],aes(date),binwidth=2, color="chocolate1",size=0.7) +
+  scale_x_date(date_breaks="3 month",date_labels="%b %Y", limits=c(as.Date("2017-01-01"), as.Date("2019-03-28"))) +
+  annotate("text", x=as.Date("2017-4-7"), y=85000, label="Dockless E-Scooters", color="chocolate1", fontface=1) +
+  annotate("text", x=as.Date("2017-4-7"), y=77000, label="Dockless E-Bikes", color="dodgerblue", fontface=1) +
+  annotate("text", x=as.Date("2017-4-7"), y=69000, label="Docked Bicycles", color="springgreen4", fontface=1) +
+  labs(title = "Daily Trips", x="", y="Count")
+```
+
+### Limit sample to August 16th, 2018 - February 28th, 2019
+```{r}
+micromobility <- rbind(new_dockless[which(new_dockless$date>as.Date("2018-08-15") & new_dockless$date<as.Date("2019-03-01")),],new_docked)
+micromobility$speed <- (micromobility$Trip.Distance/1000)/(micromobility$Trip.Duration.Minutes/60)
+```
+
+### Defining 'old' for previous' year bikesharing trips
+```{r}
+micromobility[which(micromobility$Vehicle.Type=="bicycle"),3] <- "old"
+micromobility[which(micromobility$Vehicle.Type=="old" & micromobility$date>as.Date("2018-08-15") & micromobility$date<as.Date("2019-03-01")),3] <- "bicycle"
+micromobility[which(micromobility$Vehicle.Type=="old" & micromobility$date>as.Date("2017-08-15") & micromobility$date<as.Date("2018-03-01")),3] <- "old_bicycle"
+micromobility <- micromobility[which(micromobility$Vehicle.Type!="old"),]
+```
+
+
+# Trip Statistics:
+```{r}
+scooter <- micromobility[which(micromobility$Vehicle.Type=="scooter"),]
+ebike <- micromobility[which(micromobility$Vehicle.Type=="e-bike"),]
+bicycle <- micromobility[which(micromobility$Vehicle.Type=="bicycle"),]
+old_bicycle <- micromobility[which(micromobility$Vehicle.Type=="old_bicycle"),]
+```
+
+```{r}
+print("Scooter trips:")
+nrow(scooter)
+print("Ebike trips:")
+nrow(ebike)
+print("Bikeshare trips:")
+nrow(bicycle)
+print("Bikeshare (2017) trips:")
+nrow(old_bicycle)
+```
+
+### Trip duration:
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle"),],aes(x=Trip.Duration.Minutes,y=..density..),binwidth=1,color="black") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(x=Trip.Duration.Minutes,y=..density..),binwidth=1,color="springgreen4") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(x=Trip.Duration.Minutes,y=..density..),binwidth=1,color="dodgerblue") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter"),],aes(x=Trip.Duration.Minutes,y=..density..),binwidth=1,color="chocolate1") +
+  xlim(0,60) +
+  ylim(0,0.16) +
+  geom_vline(xintercept=mean(scooter$Trip.Duration.Minutes), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(scooter$Trip.Duration.Minutes), linetype="dotted", color="chocolate1") +
+  annotate("text", x=mean(scooter$Trip.Duration.Minutes)+1, y=0.14, label=paste("Mean:",round(mean(scooter$Trip.Duration.Minutes),2)), angle=90, color="chocolate1") +
+  annotate("text", x=median(scooter$Trip.Duration.Minutes)-1, y=0.14, label=paste("Median:",round(median(scooter$Trip.Duration.Minutes),2)), angle=90, color="chocolate1") +
+  geom_vline(xintercept=mean(ebike$Trip.Duration.Minutes), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(ebike$Trip.Duration.Minutes), linetype="dotted", color="dodgerblue") +
+  annotate("text", x=mean(ebike$Trip.Duration.Minutes)-1, y=0.14, label=paste("Mean:",round(mean(ebike$Trip.Duration.Minutes),2)), angle=90, color="dodgerblue") +
+  annotate("text", x=median(ebike$Trip.Duration.Minutes)-1, y=0.14, label=paste("Median:",round(median(ebike$Trip.Duration.Minutes),2)), angle=90, color="dodgerblue") +
+  geom_vline(xintercept=mean(bicycle$Trip.Duration.Minutes), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(bicycle$Trip.Duration.Minutes), linetype="dotted", color="springgreen4") +
+  annotate("text", x=mean(bicycle$Trip.Duration.Minutes)+1, y=0.14, label=paste("Mean:",round(mean(bicycle$Trip.Duration.Minutes),2)), angle=90, color="springgreen4") +
+  annotate("text", x=median(bicycle$Trip.Duration.Minutes)+1, y=0.14, label=paste("Median:",round(median(bicycle$Trip.Duration.Minutes),2)), angle=90, color="springgreen4") +
+  
+  geom_vline(xintercept=mean(old_bicycle$Trip.Duration.Minutes), linetype="longdash", color="black") +
+  geom_vline(xintercept=median(old_bicycle$Trip.Duration.Minutes), linetype="dotted", color="black") +
+  annotate("text", x=mean(old_bicycle$Trip.Duration.Minutes)+1, y=0.14, label=paste("Mean:",round(mean(old_bicycle$Trip.Duration.Minutes),2)), angle=90, color="black") +
+  annotate("text", x=median(old_bicycle$Trip.Duration.Minutes)+1, y=0.14, label=paste("Median:",round(median(old_bicycle$Trip.Duration.Minutes),2)), angle=90, color="black") +
+  
+  annotate("text", x=50, y=0.15, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=50, y=0.14, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=50, y=0.13, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=50, y=0.12, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Trip Duration", x="Minutes", y="Ratio of total")
+```
+
+### Trip distance
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle"),],aes(x=Trip.Distance,y=..density..),binwidth=100,color="black") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(x=Trip.Distance,y=..density..),binwidth=100,color="springgreen4") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(x=Trip.Distance,y=..density..),binwidth=100,color="dodgerblue") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter"),],aes(x=Trip.Distance,y=..density..),binwidth=100,color="chocolate1") +
+  xlim(0,10000) +
+  geom_vline(xintercept=mean(old_bicycle$Trip.Distance), linetype="longdash", color="black") +
+  geom_vline(xintercept=median(old_bicycle$Trip.Distance), linetype="dotted", color="black") +
+  geom_vline(xintercept=mean(scooter$Trip.Distance), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(scooter$Trip.Distance), linetype="dotted", color="chocolate1") +
+  geom_vline(xintercept=mean(ebike$Trip.Distance), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(ebike$Trip.Distance), linetype="dotted", color="dodgerblue") +
+  annotate("text", x=mean(ebike$Trip.Distance)-200, y=0.0015, label=paste("Mean:",round(mean(ebike$Trip.Distance),2)), angle=90, color="dodgerblue") +
+  annotate("text", x=median(ebike$Trip.Distance)-200, y=0.0015, label=paste("Median:",round(median(ebike$Trip.Distance),2)), angle=90, color="dodgerblue") +
+  geom_vline(xintercept=mean(bicycle$Trip.Distance), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(bicycle$Trip.Distance), linetype="dotted", color="springgreen4") +
+  annotate("text", x=8000, y=0.0017, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=8000, y=0.00158, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=8000, y=0.00146, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=8000, y=0.00134, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Trip Distance", x="Meters", y="Ratio of total")
+```
+
+### Trip speed
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle"),],aes(x=speed,y=..density..),binwidth=1,color="black") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(x=speed,y=..density..),binwidth=1,color="springgreen4") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(x=speed,y=..density..),binwidth=1,color="dodgerblue") +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter"),],aes(x=speed,y=..density..),binwidth=1,color="chocolate1") +
+  xlim(0,30) +
+  geom_vline(xintercept=mean(scooter$speed), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(scooter$speed), linetype="dotted", color="chocolate1") +
+  geom_vline(xintercept=mean(ebike$speed), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(ebike$speed), linetype="dotted", color="dodgerblue") +
+  annotate("text", x=mean(ebike$speed)-0.5, y=0.12, label=paste("Mean:",round(mean(ebike$speed),2)), angle=90, color="dodgerblue") +
+  annotate("text", x=median(ebike$speed)+0.5, y=0.12, label=paste("Median:",round(median(ebike$speed),2)), angle=90, color="dodgerblue") +
+  geom_vline(xintercept=mean(bicycle$speed), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(bicycle$speed), linetype="dotted", color="springgreen4") +
+  geom_vline(xintercept=mean(old_bicycle$speed), linetype="longdash", color="black") +
+  geom_vline(xintercept=median(old_bicycle$speed), linetype="dotted", color="black") +
+  annotate("text", x=25, y=0.15, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=25, y=0.14, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=25, y=0.13, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=25, y=0.02, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Trip Speed", x="KM/H", y="Ratio of total")
+```
+
+# Statistics per vehicle:
+
+```{r}
+scooter$Device.ID <- as.character(scooter$Device.ID)
+by_scooter <- group_by(scooter, Device.ID)
+by_scooter <- summarise(by_scooter, max_date = max(date))
+by_scooter <- by_scooter[which(by_scooter$max_date!=max(by_scooter$max_date)),]
+dead_scooter <- scooter[which(scooter$Device.ID %in% by_scooter$Device.ID),]
+
+by_scooter <- group_by(dead_scooter, Device.ID)
+by_scooter <- summarise(by_scooter, sum_duration = sum(Trip.Duration.Minutes), sum_distance = sum(Trip.Distance), n=n(), min_date = min(date), max_date = max(date), mean_speed = mean(sum_duration))
+by_scooter$days <- by_scooter$max_date - by_scooter$min_date +1
+by_scooter$type <- "scooter"
+```
+
+```{r}
+ebike$Device.ID <- as.character(ebike$Device.ID)
+by_ebike <- group_by(ebike, Device.ID)
+by_ebike <- summarise(by_ebike, max_date = max(date))
+by_ebike <- by_ebike[which(by_ebike$max_date!=max(by_ebike$max_date)),]
+dead_ebike <- ebike[which(ebike$Device.ID %in% by_ebike$Device.ID),]
+
+by_ebike <- group_by(dead_ebike, Device.ID)
+by_ebike <- summarise(by_ebike, sum_duration = sum(Trip.Duration.Minutes), sum_distance = sum(Trip.Distance), n=n(), min_date = min(date), max_date = max(date), mean_speed = mean(sum_duration))
+by_ebike$days <- by_ebike$max_date - by_ebike$min_date +1
+by_ebike$type <- "e-bike"
+```
+
+```{r}
+bicycle$Device.ID <- as.character(bicycle$Device.ID)
+by_bicycle <- group_by(bicycle, Device.ID)
+by_bicycle <- summarise(by_bicycle, max_date = max(date))
+by_bicycle <- by_bicycle[which(by_bicycle$max_date!=max(by_bicycle$max_date)),]
+dead_bicycle <- bicycle[which(bicycle$Device.ID %in% by_bicycle$Device.ID),]
+
+by_bicycle <- group_by(dead_bicycle, Device.ID)
+by_bicycle <- summarise(by_bicycle, sum_duration = sum(Trip.Duration.Minutes), sum_distance = sum(Trip.Distance), n=n(), min_date = min(date), max_date = max(date), mean_speed = mean(sum_duration))
+by_bicycle$days <- by_bicycle$max_date - by_bicycle$min_date +1
+by_bicycle$type <- "bicycle"
+```
+
+```{r}
+old_bicycle$Device.ID <- as.character(old_bicycle$Device.ID)
+by_old <- group_by(old_bicycle, Device.ID)
+by_old <- summarise(by_old, max_date = max(date))
+by_old <- by_old[which(by_old$max_date!=max(by_old$max_date)),]
+dead_old <- old_bicycle[which(old_bicycle$Device.ID %in% by_old$Device.ID),]
+
+by_old <- group_by(dead_old, Device.ID)
+by_old <- summarise(by_old, sum_duration = sum(Trip.Duration.Minutes), sum_distance = sum(Trip.Distance), n=n(), min_date = min(date), max_date = max(date), mean_speed = mean(sum_duration))
+by_old$days <- by_old$max_date - by_old$min_date +1
+by_old$type <- "old_bicycle"
+```
+
+```{r}
+by_vehicle <- rbind(by_scooter,by_ebike,by_bicycle,by_old)
+```
+
+### Vehicle duration
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="old_bicycle"),],aes(x=sum_duration/60,y=..density..),binwidth=1,color="black") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="bicycle"),],aes(x=sum_duration/60,y=..density..),binwidth=1,color="springgreen4") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="e-bike"),],aes(x=sum_duration/60,y=..density..),binwidth=1,color="dodgerblue") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="scooter"),],aes(x=sum_duration/60,y=..density..),binwidth=1,color="chocolate1") +
+  geom_vline(xintercept=mean(by_old$sum_duration/60), linetype="longdash", color="black") +
+  geom_vline(xintercept=median(by_old$sum_duration/60), linetype="dotted", color="black") +
+  geom_vline(xintercept=mean(by_scooter$sum_duration/60), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(by_scooter$sum_duration/60), linetype="dotted", color="chocolate1") +
+  geom_vline(xintercept=mean(by_ebike$sum_duration/60), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(by_ebike$sum_duration/60), linetype="dotted", color="dodgerblue") +
+  geom_vline(xintercept=mean(by_bicycle$sum_duration/60), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(by_bicycle$sum_duration/60), linetype="dotted", color="springgreen4") +
+  annotate("text", x=mean(by_bicycle$sum_duration/60)+3, y=0.06, label=paste("Mean:",round(mean(by_bicycle$sum_duration/60),2)), angle=90, color="springgreen4") +
+  annotate("text", x=median(by_bicycle$sum_duration/60)-4, y=0.06, label=paste("Median:",round(median(by_bicycle$sum_duration/60),2)), angle=90, color="springgreen4") +
+  annotate("text", x=150, y=0.07, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=150, y=0.065, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=150, y=0.06, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=150, y=0.055, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Vehicle Usage Time", x="Hours", y="Ratio of total")
+```
+
+### Vehicle distance
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="old_bicycle"),],aes(x=sum_distance/1000,y=..density..),binwidth=10,color="black") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="bicycle"),],aes(x=sum_distance/1000,y=..density..),binwidth=10,color="springgreen4") +
+   geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="e-bike"),],aes(x=sum_distance/1000,y=..density..),binwidth=10,color="dodgerblue") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="scooter"),],aes(x=sum_distance/1000,y=..density..),binwidth=10,color="chocolate1") +
+  geom_vline(xintercept=mean(by_old$sum_distance/1000), linetype="longdash", color="black") +
+  geom_vline(xintercept=median(by_old$sum_distance/1000), linetype="dotted", color="black") +    
+  geom_vline(xintercept=mean(by_scooter$sum_distance/1000), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(by_scooter$sum_distance/1000), linetype="dotted", color="chocolate1") +
+  geom_vline(xintercept=mean(by_ebike$sum_distance/1000), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(by_ebike$sum_distance/1000), linetype="dotted", color="dodgerblue") +
+  geom_vline(xintercept=mean(by_bicycle$sum_distance/1000), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(by_bicycle$sum_distance/1000), linetype="dotted", color="springgreen4") +
+  annotate("text", x=600, y=0.008, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=600, y=0.0075, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=600, y=0.007, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=600, y=0.0065, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Vehicle Total Distance", x="KM", y="Ratio of total")
+```
+
+### Vehicle trips
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="scooter"),],aes(x=n,y=..density..),binwidth=10,color="chocolate1") +
+    geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="e-bike"),],aes(x=n,y=..density..),binwidth=10,color="dodgerblue") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="bicycle"),],aes(x=n,y=..density..),binwidth=10,color="springgreen4") +
+  geom_vline(xintercept=mean(by_scooter$n), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(by_scooter$n), linetype="dotted", color="chocolate1") +
+  geom_vline(xintercept=mean(by_ebike$n), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(by_ebike$n), linetype="dotted", color="dodgerblue") +
+  geom_vline(xintercept=mean(by_bicycle$n), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(by_bicycle$n), linetype="dotted", color="springgreen4") +
+  annotate("text", x=mean(by_bicycle$n)+11, y=0.017, label=paste("Mean:",round(mean(by_bicycle$n),2)), angle=90, color="springgreen4") +
+  annotate("text", x=median(by_bicycle$n)-13, y=0.017, label=paste("Median:",round(median(by_bicycle$n),2)), angle=90, color="springgreen4") +
+  annotate("text", x=500, y=0.018, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=500, y=0.0168, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=500, y=0.0156, label="Docked Bicycles", color="springgreen4") +
+  labs(title = "Vehicle Total Trips", x="Trips", y="Ratio of total")
+```
+
+### Vehicle active days
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="scooter"),],aes(x=days,y=..density..),binwidth=10,color="chocolate1") +
+    geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="e-bike"),],aes(x=days,y=..density..),binwidth=10,color="dodgerblue") +
+  geom_freqpoly(data=by_vehicle[which(by_vehicle$type=="bicycle"),],aes(x=days,y=..density..),binwidth=10,color="springgreen4") +
+  geom_vline(xintercept=mean(by_scooter$days), linetype="longdash", color="chocolate1") +
+  geom_vline(xintercept=median(by_scooter$days), linetype="dotted", color="chocolate1") +
+  annotate("text", x=mean(by_scooter$days)+3, y=0.05, label=paste("Mean:",round(mean(by_scooter$days),2)), angle=90, color="chocolate1") +
+  annotate("text", x=median(by_scooter$days)-5, y=0.05, label=paste("Median:",round(median(by_scooter$days),2)), angle=90, color="chocolate1") +
+  geom_vline(xintercept=mean(by_ebike$days), linetype="longdash", color="dodgerblue") +
+  geom_vline(xintercept=median(by_ebike$days), linetype="dotted", color="dodgerblue") +
+  annotate("text", x=mean(by_ebike$days)+3, y=0.03, label=paste("Mean:",round(mean(by_ebike$days),2)), angle=90, color="dodgerblue") +
+  annotate("text", x=median(by_ebike$days)-5, y=0.03, label=paste("Median:",round(median(by_ebike$days),2)), angle=90, color="dodgerblue") +
+  geom_vline(xintercept=mean(by_bicycle$days), linetype="longdash", color="springgreen4") +
+  geom_vline(xintercept=median(by_bicycle$days), linetype="dotted", color="springgreen4") +
+  annotate("text", x=mean(by_bicycle$days)-5, y=0.017, label=paste("Mean:",round(mean(by_bicycle$days),2)), angle=90, color="springgreen4") +
+  annotate("text", x=median(by_bicycle$days)+3, y=0.017, label=paste("Median:",round(median(by_bicycle$days),2)), angle=90, color="springgreen4") +
+  annotate("text", x=120, y=0.05, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=120, y=0.046, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=120, y=0.042, label="Docked Bicycles", color="springgreen4") +
+  labs(title = "Vehicle Day Active", x="Days", y="Ratio of total")
+```
+
+### Bicycle days active
+```{r}
+by_bicycle <- group_by(bicycle, Device.ID)
+by_bicycle <- summarise(by_bicycle, max_date = max(date))
+by_bicycle <- by_bicycle[which(by_bicycle$max_date!=max(by_bicycle$max_date)),]
+dead_bicycle <- bicycle[which(bicycle$Device.ID %in% by_bicycle$Device.ID),]
+
+by_bicycle <- group_by(dead_bicycle, Device.ID)
+by_bicycle <- summarise(by_bicycle, n=n(), min_date = min(date), max_date = max(date))
+by_bicycle$days <- by_bicycle$max_date - by_bicycle$min_date +1
+by_bicycle$type <- "bicycle"
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_bicycle,aes(x=days,y=..density..),binwidth=10,color="springgreen4") +
+  #xlim(0,300) +
+  geom_vline(xintercept=mean(by_bicycle$days), linetype="longdash") +
+  geom_vline(xintercept=median(by_bicycle$days), linetype="dotted") +
+  labs(title = "Bicycle days", x="Days", y="Ratio of total") +
+  annotate("text", x=mean(by_bicycle$days)-5, y=0.0025, label="Mean", angle=90) +
+  annotate("text", x=median(by_bicycle$days)-5, y=0.0025, label="Median", angle=90) +
+  annotate("text", x=250, y=0.06, label=paste("Mean:",round(mean(by_bicycle$days),2))) +
+  annotate("text", x=250, y=0.056, label=paste("Median:",median(by_bicycle$days))) +
+  annotate("text", x=250, y=0.052, label=paste("Min:",min(by_bicycle$days))) +
+  annotate("text", x=250, y=0.048, label=paste("Max:",max(by_bicycle$days))) +
+  annotate("text", x=250, y=0.044, label=paste("SD:",round(sd(by_bicycle$days),2)))
+```
+
+```{r}
+by_bicycle <- group_by(bicycle, Device.ID)
+by_bicycle <- summarise(by_bicycle, n=n(), min_date = min(date), max_date = max(date))
+by_bicycle$days <- by_bicycle$max_date - by_bicycle$min_date +1
+by_bicycle$type <- "bicycle"
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=by_bicycle,aes(x=days,y=..density..),binwidth=10,color="springgreen4") +
+  geom_vline(xintercept=mean(by_bicycle$days), linetype="longdash") +
+  geom_vline(xintercept=median(by_bicycle$days), linetype="dotted") +
+  labs(title = "Bicycle days (include active)", x="Days", y="Ratio of total") +
+  annotate("text", x=mean(by_bicycle$days)-5, y=0.0025, label="Mean", angle=90) +
+  annotate("text", x=median(by_bicycle$days)-5, y=0.0025, label="Median", angle=90) +
+  annotate("text", x=250, y=0.06, label=paste("Mean:",round(mean(by_bicycle$days),2))) +
+  annotate("text", x=250, y=0.056, label=paste("Median:",median(by_bicycle$days))) +
+  annotate("text", x=250, y=0.052, label=paste("Min:",min(by_bicycle$days))) +
+  annotate("text", x=250, y=0.048, label=paste("Max:",max(by_bicycle$days))) +
+  annotate("text", x=250, y=0.044, label=paste("SD:",round(sd(by_bicycle$days),2)))
+```
+
+# Time Histograms
+
+### Daily Trips
+```{r}
+micromobility2 <- micromobility
+tmp <- as.POSIXlt(micromobility2[which(micromobility2$Vehicle.Type=="old_bicycle"),6])
+tmp$year <- tmp$year+1
+micromobility2[which(micromobility2$Vehicle.Type=="old_bicycle"),6] <- as.Date(tmp)
+```
+```{r}
+
+ggplot() +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="old_bicycle"),],aes(date),binwidth=2, color="black") +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="bicycle"),],aes(date),binwidth=2, color="springgreen4") +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="e-bike"),],aes(date),binwidth=2, color="dodgerblue") +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="scooter"),],aes(date),binwidth=2, color="chocolate1") +
+  scale_x_date(date_breaks="1 month",date_labels="%b", limits=c(as.Date("2018-08-16"), as.Date("2019-02-28"))) +
+  scale_y_log10() +
+  annotate("text", x=as.Date("2018-9-17"), y=100, label="Dockless E-Scooters", color="chocolate1", fontface=2) +
+  annotate("text", x=as.Date("2018-9-17"), y=60, label="Dockless E-Bikes", color="dodgerblue", fontface=2) +
+  annotate("text", x=as.Date("2018-9-17"), y=40, label="Docked Bicycles", color="springgreen4", fontface=2) +
+  annotate("text", x=as.Date("2018-9-17"), y=25, label="Docked Bicycles (2017)", color="black", fontface=2) +
+  labs(title = "Daily Trips", x="", y="Count")
+```
+
+```{r}
+
+ggplot() +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="old_bicycle"),],aes(date),binwidth=2, color="black") +
+  geom_freqpoly(data=micromobility2[which(micromobility$Vehicle.Type=="bicycle"),],aes(date),binwidth=2, color="springgreen4") +
+  scale_x_date(date_breaks="1 month",date_labels="%b", limits=c(as.Date("2018-08-16"), as.Date("2019-02-28"))) +
+  annotate("text", x=as.Date("2019-1-7"), y=4150, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=as.Date("2019-1-7"), y=3800, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Daily Trips", x="", y="Count")
+```
+
+### Weekly Trips
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="scooter"),],aes(Day.of.Week), fill="chocolate1", stat="count") +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(Day.of.Week), fill="springgreen4", stat="count") +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(Day.of.Week), fill="dodgerblue", stat="count") +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6), labels=c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")) +
+  labs(title = "Daily Trips", x="", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle"),],aes(Day.of.Week), fill="springgreen4", stat="count") +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike"),],aes(Day.of.Week), fill="dodgerblue", stat="count") +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6), labels=c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")) +
+  labs(title = "Daily Trips", x="", y="Count")
+```
+
+```{r}
+by_day_s <- group_by(scooter[which(scooter$date>as.Date("2018-08-16")),], Day.of.Week)
+by_day_s <- summarise(by_day_s, n=n())
+by_day_s$type <- "scooter"
+by_day_s$ratio <- by_day_s$n/nrow(scooter)
+```
+
+```{r}
+by_day_e <- group_by(ebike[which(ebike$date>as.Date("2018-08-16")),], Day.of.Week)
+by_day_e <- summarise(by_day_e, n=n())
+by_day_e$type <- "e-bike"
+by_day_e$ratio <- by_day_e$n/nrow(ebike)
+```
+
+```{r}
+by_day_b <- group_by(bicycle[which(bicycle$date>as.Date("2018-08-16")),], Day.of.Week)
+by_day_b <- summarise(by_day_b, n=n())
+by_day_b$type <- "bicycle"
+by_day_b$ratio <- by_day_b$n/nrow(bicycle)
+```
+
+```{r}
+by_day_o <- group_by(old_bicycle, Day.of.Week)
+by_day_o <- summarise(by_day_o, n=n())
+by_day_o$type <- "old_bicycle"
+by_day_o$ratio <- by_day_o$n/nrow(old_bicycle)
+```
+
+```{r}
+by_day <- rbind(by_day_s,by_day_e,by_day_b,by_day_o)
+```
+
+```{r}
+ggplot() +
+  geom_bar(data=by_day[which(by_day$type=="old_bicycle"),],aes(x=Day.of.Week,y=ratio), color="black", fill=rgb(0,0,0,0), stat="identity", size=1) +
+  geom_bar(data=by_day[which(by_day$type=="bicycle"),],aes(x=Day.of.Week,y=ratio), color="springgreen4", fill=rgb(0,0,0,0), stat="identity", size=1) +
+  geom_bar(data=by_day[which(by_day$type=="e-bike"),],aes(x=Day.of.Week,y=ratio), color="dodgerblue", fill=rgb(0,0,0,0), stat="identity", size=1) +
+  geom_bar(data=by_day[which(by_day$type=="scooter"),],aes(x=Day.of.Week,y=ratio), color="chocolate1", fill=rgb(0,0,0,0), stat="identity", size=1) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6), labels=c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")) +
+  labs(title = "Daily Trips", x="", y="Ratio")
+```
+
+### Hourly:
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==0),],aes(numeric_stime), fill="chocolate1", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==0),],aes(numeric_stime), fill="springgreen4", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==0),],aes(numeric_stime), fill="dodgerblue", binwidth=0.5) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +
+  labs(title = "Weekday Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="black", binwidth=0.5, size=1) +
+    geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="chocolate1", binwidth=0.5, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="springgreen4", binwidth=0.5, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="dodgerblue", binwidth=0.5, size=1) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.1, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.095, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.09, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.085, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekday Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="black", binwidth=1, size=1) +
+    geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="chocolate1", binwidth=1, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="springgreen4", binwidth=1, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==0),],aes(x=numeric_stime,y=..density..), color="dodgerblue", binwidth=1, size=1) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.1, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.095, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.09, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.085, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekday Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="black", binwidth=0.5, size=1) +
+    geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="chocolate1", binwidth=0.5, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="springgreen4", binwidth=0.5, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="dodgerblue", binwidth=0.5, size=1) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.1, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.095, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.09, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.085, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekend Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="old_bicycle" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="black", binwidth=1, size=1) +
+    geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="chocolate1", binwidth=1, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="springgreen4", binwidth=1, size=1) +
+  geom_freqpoly(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==1),],aes(x=numeric_stime,y=..density..), color="dodgerblue", binwidth=1, size=1) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.1, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.095, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.09, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.085, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekend Trips", x="Hour", y="Count")
+```
+
+
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==0),],aes(numeric_stime), fill="springgreen4", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==0),],aes(numeric_stime), fill="dodgerblue", binwidth=0.5) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  labs(title = "Weekday Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="scooter" & micromobility$weekend==1),],aes(numeric_stime), fill="chocolate1", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==1),],aes(numeric_stime), fill="springgreen4", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==1),],aes(numeric_stime), fill="dodgerblue", binwidth=0.5) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  labs(title = "Weekend Trips", x="Hour", y="Count")
+```
+
+```{r}
+ggplot() +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="bicycle" & micromobility$weekend==1),],aes(numeric_stime), fill="springgreen4", binwidth=0.5) +
+  geom_histogram(data=micromobility[which(micromobility$Vehicle.Type=="e-bike" & micromobility$weekend==1),],aes(numeric_stime), fill="dodgerblue", binwidth=0.5) +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  labs(title = "Weekend Trips", x="Hour", y="Count")
+```
+
+```{r}
+scooter$hour <- round(scooter$numeric_stime*4)/4
+by_hour_sd <- group_by(scooter[which(scooter$weekend==0),], hour)
+by_hour_sd <- summarise(by_hour_sd, n=n())
+by_hour_sd$type <- "scooter"
+by_hour_sd$ratio <- by_hour_sd$n/(nrow(scooter[which(scooter$weekend==0),])/(28+1/7))
+```
+
+```{r}
+ebike$hour <- round(ebike$numeric_stime*4)/4
+by_hour_ed <- group_by(ebike[which(ebike$weekend==0),], hour)
+by_hour_ed <- summarise(by_hour_ed, n=n())
+by_hour_ed$type <- "e-bike"
+by_hour_ed$ratio <- by_hour_ed$n/(nrow(ebike[which(ebike$weekend==0),])/(28+1/7))
+```
+
+```{r}
+bicycle$hour <- round(bicycle$numeric_stime*4)/4
+by_hour_bd <- group_by(bicycle[which(bicycle$weekend==0),], hour)
+by_hour_bd <- summarise(by_hour_bd, n=n())
+by_hour_bd$type <- "bicycle"
+by_hour_bd$ratio <- by_hour_bd$n/(nrow(bicycle[which(bicycle$weekend==0),])/(28+1/7))
+```
+
+```{r}
+old_bicycle$hour <- round(old_bicycle$numeric_stime*4)/4
+by_hour_ob <- group_by(old_bicycle[which(old_bicycle$weekend==0),], hour)
+by_hour_ob <- summarise(by_hour_ob, n=n())
+by_hour_ob$type <- "old_bicycle"
+by_hour_ob$ratio <- by_hour_ob$n/(nrow(old_bicycle[which(old_bicycle$weekend==0),])/(28+1/7))
+```
+
+```{r}
+by_hour_weekday <- rbind(by_hour_sd,by_hour_ed,by_hour_bd,by_hour_ob)
+```
+
+```{r}
+ggplot() +
+  geom_line(data=by_hour_weekday[which(by_hour_weekday$type=="old_bicycle"),],aes(x=hour,y=ratio), color="black") +
+  geom_line(data=by_hour_weekday[which(by_hour_weekday$type=="bicycle"),],aes(x=hour,y=ratio), color="springgreen4") +
+  geom_line(data=by_hour_weekday[which(by_hour_weekday$type=="e-bike"),],aes(x=hour,y=ratio), color="dodgerblue") +
+  geom_line(data=by_hour_weekday[which(by_hour_weekday$type=="scooter"),],aes(x=hour,y=ratio), color="chocolate1") +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.7, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.65, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.6, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.55, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekday Trips", x="", y="Ratio")
+```
+
+```{r}
+by_hour_se <- group_by(scooter[which(scooter$weekend==1),], hour)
+by_hour_se <- summarise(by_hour_se, n=n())
+by_hour_se$type <- "scooter"
+by_hour_se$ratio <- by_hour_se$n/(nrow(scooter[which(scooter$weekend==1),])/(28+1/7))
+```
+
+```{r}
+by_hour_ee <- group_by(ebike[which(ebike$weekend==1),], hour)
+by_hour_ee <- summarise(by_hour_ee, n=n())
+by_hour_ee$type <- "e-bike"
+by_hour_ee$ratio <- by_hour_ee$n/(nrow(ebike[which(ebike$weekend==1),])/(28+1/7))
+```
+
+```{r}
+by_hour_be <- group_by(bicycle[which(bicycle$weekend==1),], hour)
+by_hour_be <- summarise(by_hour_be, n=n())
+by_hour_be$type <- "bicycle"
+by_hour_be$ratio <- by_hour_be$n/(nrow(bicycle[which(bicycle$weekend==1),])/(28+1/7))
+```
+
+```{r}
+by_hour_obe <- group_by(old_bicycle[which(old_bicycle$weekend==1),], hour)
+by_hour_obe <- summarise(by_hour_obe, n=n())
+by_hour_obe$type <- "old_bicycle"
+by_hour_obe$ratio <- by_hour_obe$n/(nrow(old_bicycle[which(old_bicycle$weekend==1),])/(28+1/7))
+```
+
+```{r}
+by_hour_weekend <- rbind(by_hour_se,by_hour_ee,by_hour_be,by_hour_obe)
+```
+
+```{r}
+ggplot() +
+  geom_line(data=by_hour_weekend[which(by_hour_weekend$type=="old_bicycle"),],aes(x=hour,y=ratio), color="black") +
+  geom_line(data=by_hour_weekend[which(by_hour_weekend$type=="bicycle"),],aes(x=hour,y=ratio), color="springgreen4") +
+  geom_line(data=by_hour_weekend[which(by_hour_weekend$type=="e-bike"),],aes(x=hour,y=ratio), color="dodgerblue") +
+  geom_line(data=by_hour_weekend[which(by_hour_weekend$type=="scooter"),],aes(x=hour,y=ratio), color="chocolate1") +
+  scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)) +  
+  annotate("text", x=3, y=0.7, label="Dockless E-Scooters", color="chocolate1") +
+  annotate("text", x=3, y=0.65, label="Dockless E-Bikes", color="dodgerblue") +
+  annotate("text", x=3, y=0.6, label="Docked Bicycles", color="springgreen4") +
+  annotate("text", x=3, y=0.55, label="Docked Bicycles (2017)", color="black") +
+  labs(title = "Weekend Trips", x="", y="Ratio")
+```
