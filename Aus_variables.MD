@@ -7,7 +7,7 @@
 | Ind | Industrial land use proportion	| 0 – 1	| (City of Austin Texas, 2019a) |
 | Rec | Recreational land use proportion	| 0 – 1	| (City of Austin Texas, 2019a) |
 | Bikeway | Bikeway in the polygon	| 0 / 1	| (OpenStreetMap, 2019) |
-| BW_length | Bikeway length in the polygon | (meters)	0 – 3921	| (OpenStreetMap, 2019) |
+| BW_length | Bikeway length in the polygon (meters) |	0 – 3921	| (OpenStreetMap, 2019) |
 | BW2roads | Bikeways to roads ratio (Polygons with no roads assigned 1000)	| 0 – 1190	| (City of Austin Texas, 2019b; OpenStreetMap, 2019) |
 | Bikeshare | Bikeshare stations within 400 meters	| 0 - 14 |	(City of Austin Texas, 2020b) |
 | PopDensity | Population density (per sq. km) |	0 – 20,939	| (U.S. Census Bureau, 2019) |
