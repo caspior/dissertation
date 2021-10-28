@@ -10,14 +10,14 @@ output: html_document
 ```{r}
 library(foreign)
 
-setwd("C:/Users/orcas/Documents/GitHub/dissertation/") 
+setwd("/Users/avital/Documents/GitHub/dissertation")
 grid <- read.dbf("Aus_grid.dbf")  #File is available in the repository
 ```
 
 ```{r fig.height=10}
 library(corrplot)
 
-corrplot(cor(grid[c(2:8,97:98,96,12,95,10:11,13:15,99,16,90:93,17)]), method="number", type="lower")
+corrplot(cor(grid[c(2:8,97:98,96,12,95,10:11,13:15,99,16,90:93,17)]), method="number", type="lower",number.cex = 0.7)
 ```
 
 # Preparing combined trip dataset:
@@ -72,18 +72,13 @@ docked2$numeric_stime <- hour(docked2$Checkout.Time3) + minute(docked2$Checkout.
 
 ### Refine fields
 ```{r}
-new_docked <- docked2[,1:2]
-new_docked$ID <- as.character(docked[[2]])
-new_docked$Device.ID <- as.character(docked2$Bicycle.ID)
-new_docked <- new_docked[,-c(1,2)]
-new_docked$Vehicle.Type <- "bicycle"
-new_docked$Trip.Duration.Minutes <- as.numeric(docked2$Trip.Duration.Minutes)
-new_docked$Trip.Distance <- docked2$Total_Meters
-new_docked$date <- docked2$date
-new_docked$dayname <- docked2$dayname
-new_docked$Day.of.Week <- docked2$Day.of.Week
-new_docked$numeric_stime <- docked2$numeric_stime
-new_docked$weekend <- docked2$weekend
+docked2$ID <- as.character(docked2$Trip.ID)
+docked2$Device.ID <- as.character(docked2$Bicycle.ID)
+docked2$Vehicle.Type <- "bicycle"
+docked2$Trip.Duration.Minutes <- as.numeric(docked2$Trip.Duration.Minutes)
+docked2$Trip.Distance <- docked2$Total_Meters
+
+new_docked <- docked2[,c(27:29,11,30,14:16,26,18)]
 ```
 
 

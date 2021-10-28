@@ -6,6 +6,8 @@
 
 # The database is available to download from https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s
 
+setwd("/Users/avital/Documents/GitHub/dissertation")
+
 library(foreign)
 
 bcycle <- read.csv("Austin_B-Cycle_Trips.csv")
@@ -79,5 +81,5 @@ bcycle[c(which(bcycle$holiday==1)),17] <- 1
 #Export database:
 
 saveRDS(bcycle, "bcycle.rds")
-
+write.csv(bcycle, "bcycle.csv")
 

@@ -8,6 +8,7 @@
 
 library(foreign)
 
+setwd("/Users/avital/Documents/GitHub/dissertation")
 micromobility <- read.csv("Dockless_Vehicle_Trips 3-27.csv")
 N <- nrow(micromobility)
 
