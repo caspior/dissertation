@@ -16,13 +16,13 @@ These are the following tasks in this project:
   - Create a dashboard to present descriptive statistics
   - Upload regression and RF R files
   - Add regression and RF results to dashboard
- - Chapter 2
+- Chapter 2
   - Upload R files for data preparation
   - Upload Python files for GIS analysis
   - Create a dashboard to present descriptive statistics
   - Upload regression and RF R files
   - Add regression and RF results to dashboard
- - Chapter 3
+- Chapter 3
   - Upload R files for data preparation
   - Create a dashboard to present descriptive statistics
   - Upload contetnt analysis R files
