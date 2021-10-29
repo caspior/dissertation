@@ -1,29 +1,23 @@
----
-title: "Chapter 3 - Random Forest Analysis"
-output: html_document
----
+# "Chapter 3 - Random Forest Analysis"
 
+  
 # Import dataset:
-```{r}
+  
 library(foreign)
 
 setwd("/Users/avital/Documents/GitHub/dissertation/")
 grid <- read.dbf("Aus_grid.dbf")
-```
 
 
 # Entire city model
 
 ## Split dataset
-```{r}
 set.seed(13)
 train <- sample(nrow(grid),nrow(grid)*0.7)
 training <- grid[train,]
 validation <- grid[-train,]
-```
 
 ## Create formulas
-```{r}
 formula <- as.vector(NA)
 
 ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Bikeshare + Income + PopDensity + Bus + Bus_stops + Employment + IntDens + IntDensB + Entropy + Students + Car_pop + Males + Poverty + Whites + Distance"
@@ -31,20 +25,14 @@ ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Bik
 for (i in 1:16){
   formula[i] <- paste0(colnames(grid[i+25])," ~ ",ind," + ",colnames(grid[41+(i-1)*3+1])," + ",colnames(grid[41+(i-1)*3+2])," + ",colnames(grid[41+(i-1)*3+3]))
 }
-```
 
 ## Create empty Increased MSE table
-```{r}
 IncMSE <- data.frame(Name=character(), R2=numeric(), MSE=numeric(), Trees=numeric(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Bikeshare=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Create empty Increased Node Purity table
-```{r}
 IncNodePurity <- data.frame(Name=character(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Bikeshare=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Figuring the best number of trees
-```{r}
 library(randomForest)
 
 MS <- vector()
@@ -61,10 +49,8 @@ for (i in 1:16){
   }
   best[i] <- which.min(MS2)*100
 }
-```
 
 ## Running RF models
-```{r fig.height=6}
 library(randomForest)
 set.seed(13)
 for (i in 1:16){
@@ -82,18 +68,14 @@ for (i in 1:16){
     IncNodePurity[i,j+1] <- imp[j,2]
   }
 }
-```
 
 
 ## Outputs
 
 ### Importance plot
-```{r}
 varImpPlot(rf)
-```
 
 ### Increased MSE table
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -104,13 +86,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized increased MSE table
-```{r}
 IncMSE_norm <- IncMSE
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -130,13 +110,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Increased Node Purity
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -147,13 +125,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized Increased Node Purity table
-```{r}
 IncMSE_norm <- IncNodePurity
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -173,28 +149,22 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 
 # City center model
 
-```{r}
 grid <- grid[which(grid$CityCenter==1),]
-```
 
 ## Split dataset
-```{r}
 set.seed(13)
 train <- sample(nrow(grid),nrow(grid)*0.7)
 training <- grid[train,]
 validation <- grid[-train,]
-```
 
 ## Create formulas
-```{r}
 formula <- as.vector(NA)
 
 ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Bikeshare + Income + PopDensity + Bus + Bus_stops + Employment + IntDens + IntDensB + Entropy + Students + Car_pop + Males + Poverty + Whites + Distance"
@@ -202,20 +172,14 @@ ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Bik
 for (i in 1:16){
   formula[i] <- paste0(colnames(grid[i+25])," ~ ",ind," + ",colnames(grid[41+(i-1)*3+1])," + ",colnames(grid[41+(i-1)*3+2])," + ",colnames(grid[41+(i-1)*3+3]))
 }
-```
 
 ## Create empty Increased MSE table
-```{r}
 IncMSE <- data.frame(Name=character(), R2=numeric(), MSE=numeric(), Trees=numeric(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Bikeshare=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Create empty Increased Node Purity table
-```{r}
 IncNodePurity <- data.frame(Name=character(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Bikeshare=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Figuring the best number of trees
-```{r}
 library(randomForest)
 
 MS <- vector()
@@ -232,10 +196,8 @@ for (i in 1:16){
   }
   best[i] <- which.min(MS2)*100
 }
-```
 
 ## Running RF models
-```{r fig.height=6}
 library(randomForest)
 set.seed(13)
 for (i in 1:16){
@@ -253,18 +215,14 @@ for (i in 1:16){
     IncNodePurity[i,j+1] <- imp[j,2]
   }
 }
-```
 
 
 ## Outputs
 
 ### Importance plot
-```{r}
 varImpPlot(rf)
-```
 
 ### Increased MSE table
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -275,13 +233,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized increased MSE table
-```{r}
 IncMSE_norm <- IncMSE
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -301,13 +257,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Increased Node Purity
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -318,13 +272,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized Increased Node Purity table
-```{r}
 IncMSE_norm <- IncNodePurity
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -344,28 +296,22 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 
 # Bikesharing model
 
-```{r}
 grid <- read.dbf("Aus_SA.dbf")
-```
 
 ## Split dataset
-```{r}
 set.seed(13)
 train <- sample(nrow(grid),nrow(grid)*0.7)
 training <- grid[train,]
 validation <- grid[-train,]
-```
 
 ## Create formulas
-```{r}
 formula <- as.vector(NA)
 
 ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Income + PopDensity + Bus + Bus_stops + Employment + IntDens + IntDensB + Entropy + Students + Car_pop + Males + Poverty + Whites + Distance"
@@ -373,20 +319,14 @@ ind <- "Res + Com + Ins + Edu + Ind + Rec + Bikeway + BW_length + BW2roads + Inc
 for (i in 1:8){
   formula[i] <- paste0(colnames(grid[i+25])," ~ ",ind," + ",colnames(grid[i+49])," + ",colnames(grid[i+41])," + ",colnames(grid[i+33]))
 }
-```
 
 ## Create empty Increased MSE table
-```{r}
 IncMSE <- data.frame(Name=character(), R2=numeric(), MSE=numeric(), Trees=numeric(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Create empty Increased Node Purity table
-```{r}
 IncNodePurity <- data.frame(Name=character(), Res=numeric(), Com=numeric(), Ins=numeric(), Edu=numeric(), Ind=numeric(), Rec=numeric(), Bikeway=numeric(), BW_length=numeric(), NW2roads=numeric(), Income=numeric(), PopDensity=numeric(), Bus=numeric(), Bus_stops=numeric(), Employment=numeric(), IntDens=numeric(), IntDensB=numeric(), Entropy=numeric(), Students=numeric(), Car_pop=numeric(), Males=numeric(), Poverty=numeric(), Whites=numeric(), Distance=numeric(), rho1K=numeric(), rho2K=numeric(), rho5K=numeric(), stringsAsFactors=FALSE)
-```
 
 ## Figuring the best number of trees
-```{r}
 library(randomForest)
 
 MS <- vector()
@@ -403,10 +343,8 @@ for (i in 1:8){
   }
   best[i] <- which.min(MS2)*100
 }
-```
 
 ## Running RF models
-```{r fig.height=6}
 library(randomForest)
 set.seed(13)
 for (i in 1:4){
@@ -424,18 +362,14 @@ for (i in 1:4){
     IncNodePurity[i,j+1] <- imp[j,2]
   }
 }
-```
 
 
 ## Outputs
 
 ### Importance plot
-```{r}
 varImpPlot(rf)
-```
 
 ### Increased MSE table
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -446,13 +380,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized increased MSE table
-```{r}
 IncMSE_norm <- IncMSE
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -472,13 +404,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Increased Node Purity
-```{r}
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -489,13 +419,11 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
 
 ### Normalized Increased Node Purity table
-```{r}
 IncMSE_norm <- IncNodePurity
 range = vector()
 IncMSE_norm[IncMSE_norm<0] <- 0
@@ -515,7 +443,6 @@ for (i in 1:ncol(t)){
 }
 t <- t[-1,]
 
-  t %>% kbl() %>% kable_paper(full_width=F) %>%
+t %>% kbl() %>% kable_paper(full_width=F) %>%
   column_spec (1:ncol(t),border_left = T, border_right = T, width="1cm") %>%
   kable_styling()
-```
