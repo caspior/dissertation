@@ -26,3 +26,9 @@ Trips' descriptive statistical analysis performed using this [R script](Aus_Desc
 
 ### Random Forest
 I used random forest in my dissertation to be able to compare different types of shared micromobility with different distributions. I uaed the 'Increased MSE' parameter to evaluate the importance of each feature to the ridership. I used this [R Markdown](Aus_RF.Rmd) also available in [R script format](Aus_RF.R).
+
+### Spatial Lag, Spatial Error, and Spatial Durbin
+
+### Geographically Weighted Regression
+
+### Linear Regression
