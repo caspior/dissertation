@@ -29,7 +29,7 @@ I used random forest in my dissertation to be able to compare different types of
 
 ### Spatial Lag, Spatial Error, and Spatial Durbin
 I used three spatial regression models to evaluate the role of the features on e-scooter ridership:
-- **Spatial Lag** - the spatial component is an addition feature: <img src="https://render.githubusercontent.com/render/math?math=y_i = \theta Wy_j">
+- **Spatial Lag** - the spatial component is an addition feature: <img src="https://render.githubusercontent.com/render/math?math=y_i = \rho Wy_j">
 - 𝑦 = 𝜌𝑊𝑦 + 𝑥𝛽 + 𝜀
 
 ### Geographically Weighted Regression
