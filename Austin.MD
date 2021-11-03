@@ -25,7 +25,7 @@ For the purpose of advanced statistics and machine learning I aggregated the tri
 Trips' descriptive statistical analysis performed using this [R script](Aus_Descriptive.R). This [R markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) presents the code alongside the charts. This [chart](Aus_variables.MD) defines the variables used in this research.
 
 ### Moran's I
-The moran's I test examines whether a variable is sptially autocorrelated. Significnt results indictes a spatial autocorrelated - hence there is a spatial relationship between the study units and a spatial model is required for the analysis.
+The moran's I test examines whether a variable is sptially autocorrelated. Significnt results indictes a spatial autocorrelated - hence there is a spatial relationship between the study units and a spatial model is required for the analysis. I used this [R Markdown](Aus_MoransI.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html).
 
 ### Random Forest
 I used random forest in my dissertation to be able to compare different types of shared micromobility with different distributions. I uaed the 'Increased MSE' parameter to evaluate the importance of each feature to the ridership. I used this [R Markdown](Aus_RF.Rmd) also available in [R script format](Aus_RF.R).
