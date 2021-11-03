@@ -23,3 +23,19 @@ For the purpose of advanced statistics and machine learning I aggregated the tri
 
 ### Descriptive Statistics
 Trips' descriptive statistical analysis performed using this [R script](Aus_Descriptive.R). This [R markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) presents the code alongside the charts. This [chart](Aus_variables.MD) defines the variables used in this research.
+
+### Moran's I
+The moran's I test examines whether a variable is sptially autocorrelated. Significnt results indictes a spatial autocorrelated - hence there is a spatial relationship between the study units and a spatial model is required for the analysis.
+
+### Random Forest
+I used random forest in my dissertation to be able to compare different types of shared micromobility with different distributions. I uaed the 'Increased MSE' parameter to evaluate the importance of each feature to the ridership. I used this [R Markdown](Aus_RF.Rmd) also available in [R script format](Aus_RF.R).
+
+### Spatial Lag, Spatial Error, and Spatial Durbin
+I used three spatial regression models to evaluate the role of the features on e-scooter ridership:
+- **Spatial Lag** - the spatial component derives from the weighted (W) y values of adjacent polygons multiply by the rho coefficient and appears as an additional feature in the model's equation: <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B x\beta %2B \epsilon">
+- **Spatial Error** - the spatial component derives from the weighted (W) error term multiply by the lambda coefficient: <img src="https://render.githubusercontent.com/render/math?math=y = x\beta %2B \epsilon"> where <img src="https://render.githubusercontent.com/render/math?math=\epsilon = x\lambda W\epsilon %2B u">
+- **Sptial Durbin** - the spatial component derives from the the wieghted (W) y values of adjacent polygons multiply by the rho coefficient and the weighted (W) x vaules of adjacent polygons multiply by the theta coefficinets (different coefficient for each feature): <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B Wx\theta %2B \epsilon">
+
+### Geographically Weighted Regression
+
+### Linear Regression
