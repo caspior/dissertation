@@ -1,12 +1,11 @@
 ---
 title: "Spatial Lag"
 author: "Or Caspi"
-date: "6/13/2019"
 output: html_document
 ---
 
 ### Loading the dataset
-```{r message=FALSE}
+```{r warning=FALSE}
 library(spdep)
 library(rgdal)
 library(spatialreg)
@@ -65,10 +64,11 @@ vif(All_lm)
 ### Building weight matrices
 ```{r message=FALSE}
 nb_a <- poly2nb(Austin)
-lw_a <- nb2listw(Austin, zero.policy=T)
+lw_a <- nb2listw(nb_a, zero.policy=T)
 nb_c <- poly2nb(CC)
-lw_c <- nb2listw(CC)
+lw_c <- nb2listw(nb_c)
 ```
+
 
 ## Running the spatial regression models
 
@@ -78,10 +78,34 @@ titles <- c("All arriving trips","All departing trips","Morning arriving trips",
 ```
 ```{r message=FALSE}
 for (i in 1:4){
-  cat(paste("\n\n\n",titles[i],"- Spatial Lag Results\n\n"))
+  cat(paste("\n\n\n------",titles[i],"- Spatial Lag Results ------\n\n"))
   spatial_lag <- lagsarlm(as.formula(formula[i]), Austin, lw_a, zero.policy=T)
   print(summary(spatial_lag, Nagelkerke=T))
-  cat(paste("\n\n\n",titles[i],"- Spatial Durbin Results\n\n"))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Error Results ------\n\n"))
+  spatial_error <- errorsarlm(as.formula(formula[i]), Austin, lw_a, zero.policy=T)
+  print(summary(spatial_error, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Durbin Results ------\n\n"))
   spatial_durbin <- lagsarlm(as.formula(formula[i]), Austin, lw_a, Durbin=T, zero.policy=T)
+  print(summary(spatial_durbin, Nagelkerke=T))
+}
+```
+
+
+### Austin's City Center
+```{r message=FALSE}
+for (i in 1:4){
+  cat(paste("\n\n\n------",titles[i],"- Spatial Lag Results ------\n\n"))
+  spatial_lag <- lagsarlm(as.formula(formula[i]), CC, lw_c, zero.policy=T)
+  print(summary(spatial_lag, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Error Results ------\n\n"))
+  spatial_error <- errorsarlm(as.formula(formula[i]), CC, lw_c, zero.policy=T)
+  print(summary(spatial_error, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Durbin Results ------\n\n"))
+  spatial_durbin <- lagsarlm(as.formula(formula[i]), CC, lw_c, Durbin=T, zero.policy=T)
+  print(summary(spatial_durbin, Nagelkerke=T))
 }
 ```
