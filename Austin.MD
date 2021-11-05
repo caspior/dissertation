@@ -38,6 +38,10 @@ I used three spatial regression models to evaluate the role of the features on e
 
 I used this [R Markdown](Aus_Spreg.Rmd)
 
-### Geographically Weighted Regression
+### Geographically Weighted Regression (GWR)
+GWR models estimate the effect of local rather than global independent variable coefficients by including only a limited region for estimating the variable coefficients for each study unit. I estimated models for two dependent variables in the city center area – all arrival trips and morning arrival trips.
+
+For the GWR analysis I used the ArcGIS Desktop's GUI. The spatial distribution of the variables used in this analysis can be found [here]. The GWR outputs can be found [here].
+
 
 ### Linear Regression
