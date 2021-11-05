@@ -34,8 +34,8 @@ I used random forest in my dissertation to be able to compare different types of
 I used three spatial regression models to evaluate the role of the features on e-scooter ridership:
 - **Spatial Lag** - the spatial component derives from the weighted (W) y values of adjacent polygons multiply by the rho coefficient and appears as an additional feature in the model's equation: <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B x\beta %2B \epsilon">
 - **Spatial Error** - the spatial component derives from the weighted (W) error term multiply by the lambda coefficient: <img src="https://render.githubusercontent.com/render/math?math=y = x\beta %2B \epsilon"> where <img src="https://render.githubusercontent.com/render/math?math=\epsilon = x\lambda W\epsilon %2B u">
-- **Sptial Durbin** - the spatial component derives from the the wieghted (W) y values of adjacent polygons multiply by the rho coefficient and the weighted (W) x vaules of adjacent polygons multiply by the theta coefficinets (different coefficient for each feature): <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B Wx\theta %2B \epsilon">
- I used this [R Markdown](Aus_Spreg.Rmd)
+- **Sptial Durbin** - the spatial component derives from the the wieghted (W) y values of adjacent polygons multiply by the rho coefficient and the weighted (W) x vaules of adjacent polygons multiply by the theta coefficinets (different coefficient for each feature): <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B Wx\theta %2B \epsilon">.
+I used this [R Markdown](Aus_Spreg.Rmd)
 
 ### Geographically Weighted Regression
 
