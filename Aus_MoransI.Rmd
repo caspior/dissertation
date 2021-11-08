@@ -1,0 +1,44 @@
+---
+title: "Moran's I"
+author: "Or Caspi"
+output: html_document
+---
+
+### Loading the data
+```{r message=FALSE}
+library(spdep)
+library(rgdal)
+
+setwd("C:/Users/orcas/Documents/GitHub/dissertation/")
+
+Austin <- readOGR(dsn="shapefiles", layer="Austin_grid") #Shapefile is available in the repository 'Austin_grid.zip'
+CC <- subset(Austin, CityCenter == 1)
+```
+
+
+### Creating weight matrix
+```{r message=FALSE}
+nb_a <- poly2nb(Austin)
+lw_a <- nb2listw(nb_a, zero.policy=T)
+nb_c <- poly2nb(CC)
+lw_c <- nb2listw(nb_c)
+```
+
+
+## Running Moran's I test
+
+### The entire city of Austin:
+```{r}
+for (i in 26:41) {
+  print(colnames(Austin@data[i]))
+  print(moran.mc(as.integer(Austin@data[,i]), lw_a, 999, zero.policy=T))
+}
+```
+
+### Austin city center:
+```{r}
+for (i in 26:41) {
+  print(colnames(CC@data[i]))
+  print(moran.mc(as.integer(CC@data[,i]), lw_c, 999))
+}
+```

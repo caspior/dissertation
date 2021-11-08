@@ -1,0 +1,111 @@
+---
+title: "Spatial Lag"
+author: "Or Caspi"
+output: html_document
+---
+
+### Loading the dataset
+```{r warning=FALSE}
+library(spdep)
+library(rgdal)
+library(spatialreg)
+
+setwd("C:/Users/orcas/Documents/GitHub/dissertation/")
+
+Austin <- readOGR("shapefiles", layer="Austin_grid")
+```
+
+
+### Logging the variables (for a log-log model)
+```{r}
+# Independent
+for (i in 2:17){
+  name <- paste0("log_",colnames(Austin@data[i]))
+  Austin@data[name] <- log(Austin@data[i]+1)
+}
+# Dependent
+for (i in 26:29){
+  name <- paste0("log_",colnames(Austin@data[i]))
+  Austin@data[name] <- log(as.numeric(Austin@data[[i]])+1)
+}
+```
+
+
+### Subsetting city center
+```{r}
+CC <- subset(Austin, CityCenter == 1)
+```
+
+
+### Define model equations
+```{r message=FALSE}
+formula <- as.vector(NA)
+
+ind <- "log_Res + log_Com + log_Ins + log_Edu + log_Ind + log_Rec + BW_length + log_Income + Bus + log_Employment + log_IntDensB + log_Entropy + log_Students + log_Distance"
+
+dependents <- c("ASAA","ASAD","ASMA","ASMD")
+
+
+for (i in 1:4){
+  formula[i] <- paste0("log_",dependents[i]," ~ ",ind)
+}
+```
+
+
+### VIF - assuring no multicollinearity
+```{r}
+library(car)
+
+All_lm <- lm(as.formula(formula[1]), Austin)
+vif(All_lm)
+```
+
+
+### Building weight matrices
+```{r message=FALSE}
+nb_a <- poly2nb(Austin)
+lw_a <- nb2listw(nb_a, zero.policy=T)
+nb_c <- poly2nb(CC)
+lw_c <- nb2listw(nb_c)
+```
+
+
+## Running the spatial regression models
+
+### The entire city of Austin
+```{r}
+titles <- c("All arriving trips","All departing trips","Morning arriving trips","Morning departing trips")
+```
+```{r message=FALSE}
+for (i in 1:4){
+  cat(paste("\n\n\n------",titles[i],"- Spatial Lag Results ------\n\n"))
+  spatial_lag <- lagsarlm(as.formula(formula[i]), Austin, lw_a, zero.policy=T)
+  print(summary(spatial_lag, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Error Results ------\n\n"))
+  spatial_error <- errorsarlm(as.formula(formula[i]), Austin, lw_a, zero.policy=T)
+  print(summary(spatial_error, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Durbin Results ------\n\n"))
+  spatial_durbin <- lagsarlm(as.formula(formula[i]), Austin, lw_a, Durbin=T, zero.policy=T)
+  print(summary(spatial_durbin, Nagelkerke=T))
+}
+```
+
+
+### Austin's City Center
+```{r message=FALSE}
+for (i in 1:4){
+  cat(paste("\n\n\n------",titles[i],"- Spatial Lag Results ------\n\n"))
+  spatial_lag <- lagsarlm(as.formula(formula[i]), CC, lw_c, zero.policy=T)
+  print(summary(spatial_lag, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Error Results ------\n\n"))
+  spatial_error <- errorsarlm(as.formula(formula[i]), CC, lw_c, zero.policy=T)
+  print(summary(spatial_error, Nagelkerke=T))
+  
+  cat(paste("\n\n\n------",titles[i],"- Spatial Durbin Results ------\n\n"))
+  spatial_durbin <- lagsarlm(as.formula(formula[i]), CC, lw_c, Durbin=T, zero.policy=T)
+  print(summary(spatial_durbin, Nagelkerke=T))
+}
+```
