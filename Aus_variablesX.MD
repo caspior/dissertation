@@ -26,4 +26,4 @@
 | Entropy | Land use entropy |	0 – 1 |	(City of Austin Texas, 2019a) |
 | Students | Student population ratio	| 0 – 1 |	(U.S. Census Bureau, 2019) |
 | Distance | Distance from city center (meters)	| 56 – 26,985	| Self |
-| rho1K/2K/5K | Local spatial component | | Self |
+| rho1K/2K/5K | Local spatial component (see GIS section) | | Self |
