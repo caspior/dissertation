@@ -20,11 +20,11 @@
 | AEWA | Weekend and Holiday E-Bike Arrivals | 30,511 |
 | AEWD | Weekend and Holiday E-Bike Departures | 30,511 |
 | --- | --- | --- |
-| AEAA | Bikesharing Arrivals throughout the examined period | 128,904 |
-| AEAD | Bikesharing Departures throughout the examined period | 128,904 |
-| AEMA | Weekday Morning Bikesharing Arrivals | 9,570 |
-| AEMD | Weekday Morning Bikesharing Departures | 9,570 |
-| AEEA | Weekday Evening Bikesharing Arrivals | 20,945 |
-| AEED | Weekday Evening Bikesharing Departures | 20,945 |
-| AEWA | Weekend and Holiday Bikesharing Arrivals | 41,063 |
-| AEWD | Weekend and Holiday Bikesharing Departures | 41,063 |
+| ABAA | Bikesharing Arrivals throughout the examined period | 128,904 |
+| ABAD | Bikesharing Departures throughout the examined period | 128,904 |
+| ABMA | Weekday Morning Bikesharing Arrivals | 9,570 |
+| ABMD | Weekday Morning Bikesharing Departures | 9,570 |
+| ABEA | Weekday Evening Bikesharing Arrivals | 20,945 |
+| ABED | Weekday Evening Bikesharing Departures | 20,945 |
+| ABWA | Weekend and Holiday Bikesharing Arrivals | 41,063 |
+| ABWD | Weekend and Holiday Bikesharing Departures | 41,063 |
