@@ -1,0 +1,37 @@
+---
+title: "GWR_LM"
+author: "Or Caspi"
+output:
+  html_document: default
+  word_document: default
+---
+
+# Linear Regression for the Income GWR Results
+```{r}
+library(foreign)
+library(lm.beta)
+
+setwd("C:/Users/orcas/Documents/GitHub/dissertation/")
+
+grid <- read.dbf("Shapefiles/Austin_GWR.dbf")
+```
+
+
+## All Arrivals
+```{r}
+formula1 <- GWR_all_in ~ Resident + Commercial + Institut + Education + Industrial + Recreation + Bikeways + Income + Bus + EmpDensity + IntDens + Entropy + StdntRatio + Distance
+
+IncomeAll <- lm(formula1, grid)
+IncomeAll_beta <- lm.beta(IncomeAll)
+summary(IncomeAll_beta)
+```
+
+## Morning Arrivals
+```{r}
+formula2 <- GWR_mornin ~ Resident + Commercial + Institut + Education + Industrial + Recreation + Bikeways + Income + Bus + EmpDensity + IntDens + Entropy + StdntRatio + Distance #+ SqDistance
+
+IncomeMorning <- lm(formula2, grid)
+IncomeMorning_beta <- lm.beta(IncomeMorning)
+summary(IncomeMorning_beta)
+```
+
