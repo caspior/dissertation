@@ -22,7 +22,7 @@ All the data in this research obtained from openly available online databases.
 For the purpose of advanced statistics and machine learning I aggregated the trips by polygons using this [PyQGIS script](Aus_trips.py). I created a 0.001x0.001 degrees grid over the city of Austin and aggregated trips starts and ends for the entire examined period (Aug 16th 2018 - Feb 28th 2019), only weekday morning trips, only weekday evening trips, and only weekend and holiday trips. *More GIS analysis scripts to come
 
 ### Descriptive Statistics
-Trips' descriptive statistical analysis performed using this [R script](Aus_Descriptive.R). This [R markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) presents the code alongside the charts. This [chart](Aus_variablesX.MD) defines the independednt variables used in this research.
+Trips' descriptive statistical analysis performed using this [R script](Aus_Descriptive.R). This [R markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) presents the code alongside the charts. This [chart](Aus_variablesX.MD) defines the independednt variables used in this research. This [chart](Aus_variablesY.MD) defines the independednt variables used in this research.
 
 ### Moran's I
 The moran's I test examines whether a variable is sptially autocorrelated. Significnt results indictes a spatial autocorrelated - hence there is a spatial relationship between the study units and a spatial model is required for the analysis. I used this [R Markdown](Aus_MoransI.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html).
