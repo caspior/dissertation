@@ -17,7 +17,7 @@ grid = processing.run("native:creategrid", {'TYPE': '2',
 
 # Refining grid by Austin's Boundaries
 
-boundaries = QgsVectorLayer("tl_2021_48_place/tl_2021_48_place.shp", "boundaries", "ogr")
+boundaries = QgsVectorLayer("tl_2019_48_place/tl_2019_48_place.shp", "boundaries", "ogr")
 
 boundaries.selectByExpression(" \"NAME\" = 'Austin' ")
 
