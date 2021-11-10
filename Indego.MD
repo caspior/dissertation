@@ -1,7 +1,7 @@
-# Shared Micromobility Usage Patterns in Austin, Texas
+# Equity Implications of Electric Bikesharing in Philadelphia
 
 ### Abstract
-In this chapter, I examine dockless e-scooter and e-bike sharing usage patterns in Austin, Texas, and compare them with the city's bikeshare. I spatially analyzed micromobility trip logs with respect to the built environment and sociodemographics. I used various spatial regression models and random forest models to examine the influence of different factors on micromobility trips. Results show that micromobility usage in Austin increased due to the introduction of dockless micromobility sharing services, while bikesharing usage did not decrease. Shared e-scooters and e-bikes are mainly used in regions served by bikesharing and increase micromobility usage outside these regions. E-bikes are apparently mainly used for commuting, while e-scooters and bicycles are used for short utilitarian trips. My findings suggest that micromobility modes cover all trip purposes, serving residents’ various activity needs.
+In this chapter, I examine the influence of the added e-bikes on Philadelphia's bikeshare on usage in disadvantaged neighborhoods in the city. Indego, Philadelphia's bikeshare, embraced the promotion of equity as part of its primary goals. While previous measures were not adequate for that cause, Indego decided to integrate e-bikes into its system to promote usage among current non-users. In my analysis, I combined official publicly available data using spatial analysis methods. Furthermore, I used random forest and spatial negative binomial regression to examine factors influencing shared bicycle and e-bike usage in Philadelphia. The findings show that e-bikes increase the overall usage of Indego, specifically in disadvantaged areas. In these regions, the users use shared e-bikes for both commute and other utilitarian purposes, while in the rest of the city, users use e-bikes mainly for commuting. While in the first few months, the ridership in disadvantaged areas was similar to the usage elsewhere, the usage in those areas later declined. I concluded that the integration of e-bikes was successful in increasing bikesharing usage in disadvantaged areas in the short term.
 
 ### Data
 All the data in this research obtained from openly available online databases.
@@ -19,31 +19,11 @@ All the data in this research obtained from openly available online databases.
   - Bikways were retrieved from [Open Street Map](https://www.openstreetmap.org/) using the [QuickOSM](https://plugins.qgis.org/plugins/QuickOSM/) plugin for QGIS.
 
 ### GIS
-For the purpose of advanced statistics and machine learning I aggregated the trips by polygons using this [PyQGIS script](Aus_trips.py). I created a 0.001x0.001 degrees grid over the city of Austin and aggregated trips starts and ends for the entire examined period (Aug 16th 2018 - Feb 28th 2019), only weekday morning trips, only weekday evening trips, and only weekend and holiday trips. *More GIS analysis scripts to come
 
 ### Descriptive Statistics
-Trips' descriptive statistical analysis performed using this [R script](Aus_Descriptive.R). This [R markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) presents the code alongside the charts. This [chart](Aus_variablesX.MD) defines the independednt variables used in this research. This [chart](Aus_variablesY.MD) defines the independednt variables used in this research.
 
 ### Moran's I
-The moran's I test examines whether a variable is sptially autocorrelated. Significnt results indictes a spatial autocorrelated - hence there is a spatial relationship between the study units and a spatial model is required for the analysis. I used this [R Markdown](Aus_MoransI.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html).
 
 ### Random Forest
-I used random forest in my dissertation to be able to compare different types of shared micromobility with different distributions. I uaed the 'Increased MSE' parameter to evaluate the importance of each feature to the ridership. I used this [R Markdown](Aus_RF.Rmd) also available in [R script format](Aus_RF.R). You can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_RF.html).
 
-
-### Spatial Lag, Spatial Error, and Spatial Durbin
-I used three spatial regression models to evaluate the role of the features on e-scooter ridership:
-- **Spatial Lag** - the spatial component derives from the weighted (W) y values of adjacent polygons multiply by the rho coefficient and appears as an additional feature in the model's equation: <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B x\beta %2B \epsilon">
-- **Spatial Error** - the spatial component derives from the weighted (W) error term multiply by the lambda coefficient: <img src="https://render.githubusercontent.com/render/math?math=y = x\beta %2B \epsilon"> where <img src="https://render.githubusercontent.com/render/math?math=\epsilon = x\lambda W\epsilon %2B u">
-- **Sptial Durbin** - the spatial component derives from the the wieghted (W) y values of adjacent polygons multiply by the rho coefficient and the weighted (W) x vaules of adjacent polygons multiply by the theta coefficinets (different coefficient for each feature): <img src="https://render.githubusercontent.com/render/math?math=y = \rho Wy %2B Wx\theta %2B \epsilon">.
-
-I used this [R Markdown](Aus_Spreg.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_Spreg.html).
-
-
-### Geographically Weighted Regression (GWR)
-GWR models estimate the effect of local rather than global independent variable coefficients by including only a limited region for estimating the variable coefficients for each study unit. I estimated models for two dependent variables in the city center area – all arrival trips and morning arrival trips. Since GWR is a linear regression I logged the ridership variables.
-
-For the GWR analysis I used ArcGIS Desktop's GUI. The spatial distribution of the variables used in this analysis can be found [here](Aus_Spatial_variables.pdf). The GWR outputs can be found [here](Aus_GWR_all.pdf) for all the trips and [here](Aus_GWR_mornings.pdf) for the morning trips.
-
-
-### Linear Regression
+### Spatial Negative Binomial Regression
