@@ -54,4 +54,5 @@ The final step in my analysis included a linear regression with the Median Annua
 ### Summary Table
 | Description | Code | Input | Output |
 | --- | --- | --- | --- |
-| Cleaning dockless trip log | [R](Aus_Cleaning.R) | [Austin's Dockless trip log](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) | |
+| Cleaning the dockless trip log | [R](Aus_Cleaning.R) | [Austin's dockless trip log](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) | |
+| Cleaning the bikesharing trip log | [R](Aus_Cleaning_B.R) | [Austin's bikesharing trip log](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s) | |
