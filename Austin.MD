@@ -60,3 +60,4 @@ The final step in my analysis included a linear regression with the Median Annua
 | Moran's I | [R Markdown](Aus_MoransI.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html) |
 | Random Forest | [R](Aus_RF.R), [R Markdown](Aus_RF.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_RF.html) |
 | Spatial Regressions | [R Mardown](Aus_Spreg.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_Spreg.html) |
+| Geographically Weighted Regression | | [Grid shapefile](Austin_grid.zip) | [All trips](Aus_GWR_all.pdf), [Morning trips](Aus_GWR_mornings.pdf |
