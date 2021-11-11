@@ -56,4 +56,5 @@ The final step in my analysis included a linear regression with the Median Annua
 | --- | --- | --- | --- |
 | Cleaning the dockless trip log | [R](Aus_Cleaning.R) | [Austin's dockless trip log](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) | |
 | Cleaning the bikesharing trip log | [R](Aus_Cleaning_B.R) | [Austin's bikesharing trip log](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s) | |
-| Descriptive statistics | [R](Aus_Descriptive.R) | Outputs of trip log cleaning scripts | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) |
+| Descriptive statistics | [R](Aus_Descriptive.R) | Outputs of trip log cleaning scripts, [Origin destination matrix](OD_matrix.csv) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) |
+| Moran's I | [R Markdown](Aus_MoransI.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html) |
