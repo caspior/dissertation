@@ -52,7 +52,8 @@ For the GWR analysis I used ArcGIS Desktop's GUI. The spatial distribution of th
 The final step in my analysis included a linear regression with the Median Annual Income coefficient from the GWR models as the depentend variable. I used this [R Markdown](Aus_LM.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_LM.html).
 
 ### Summary Table
-| Description | Code | Input | Output |
+| Description | Script | Input | Output |
 | --- | --- | --- | --- |
 | Cleaning the dockless trip log | [R](Aus_Cleaning.R) | [Austin's dockless trip log](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) | |
 | Cleaning the bikesharing trip log | [R](Aus_Cleaning_B.R) | [Austin's bikesharing trip log](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s) | |
+| Descriptive statistics | [R](Aus_Descriptive.R) | Outputs of trip log cleaning scripts | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) |
