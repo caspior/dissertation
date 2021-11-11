@@ -1,0 +1,220 @@
+--Add geometry from XY
+
+ALTER TABLE sample ADD COLUMN geom geometry(Point, 4269);
+UPDATE sample SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precision,"End Latitude"::double precision), 4269);
+
+
+--Convert CRS
+ALTER TABLE ends ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
+
+
+--Aggregate trips
+
+CREATE TABLE trip_counts AS (
+	WITH grid AS (
+		WITH grid AS (
+			WITH grid AS (
+				WITH grid AS (
+					WITH grid AS (
+						WITH grid AS (
+							WITH grid AS (
+								WITH grid AS (
+									WITH grid AS (
+										WITH grid AS (
+											WITH grid AS (
+												WITH grid AS (
+													WITH grid AS (
+														WITH grid AS (
+															WITH grid AS (
+																-- Scooters All Departures
+																WITH trips AS (
+																	WITH departures AS (
+																		SELECT *
+																		FROM starts
+																		WHERE "Vehicle.Type" = 'scooter')
+																	SELECT grid.id, count(departures.ID) AS ASAD
+																	FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+																	GROUP BY grid.id)
+																SELECT grid.id, ASAD, geom
+																FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+															-- Scooter All Arrivals
+															trips AS (
+																WITH arrivals AS (
+																	SELECT *
+																	FROM ends
+																	WHERE "Vehicle.Type" = 'scooter')
+																SELECT grid.id, count(arrivals.ID) AS ASAA
+																FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+																GROUP BY grid.id)
+															SELECT grid.id, ASAD, ASAA, geom
+															FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+														-- Scooter Morning Departures
+														trips AS (
+															WITH departures AS (
+																SELECT *
+																FROM starts
+																WHERE "Vehicle.Type" = 'scooter' AND numeric_stime::double precision >= 7 AND numeric_stime::double precision <= 10 AND weekend = '0')
+															SELECT grid.id, count(departures.ID) AS ASMD
+															FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+															GROUP BY grid.id)
+														SELECT grid.id, ASAD, ASAA, ASMD, geom
+														FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+													-- Scooter Morning Arrivals
+													trips AS (
+														WITH arrivals AS (
+															SELECT *
+															FROM ends
+															WHERE "Vehicle.Type" = 'scooter' AND numeric_stime::double precision >= 7 AND numeric_stime::double precision <= 10 AND weekend = '0')
+														SELECT grid.id, count(arrivals.ID) AS ASMA
+														FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+														GROUP BY grid.id)
+													SELECT grid.id, ASAD, ASAA, ASMD, ASMA, geom
+													FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+												-- Scooter Evening Departures
+												trips AS (
+													WITH departures AS (
+														SELECT *
+														FROM starts
+														WHERE "Vehicle.Type" = 'scooter' AND numeric_stime::double precision >= 16 AND numeric_stime::double precision <= 19 AND weekend = '0')
+													SELECT grid.id, count(departures.ID) AS ASED
+													FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+													GROUP BY grid.id)
+												SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, geom
+												FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+											-- Scooter Evening Arrivals
+											trips AS (
+												WITH arrivals AS (
+													SELECT *
+													FROM ends
+													WHERE "Vehicle.Type" = 'scooter' AND numeric_stime::double precision >= 16 AND numeric_stime::double precision <= 19 AND weekend = '0')
+												SELECT grid.id, count(arrivals.ID) AS ASEA
+												FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+												GROUP BY grid.id)
+											SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, geom
+											FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+										-- Scooters Weekend Departures
+										trips AS (
+											WITH departures AS (
+												SELECT *
+												FROM starts
+												WHERE "Vehicle.Type" = 'scooter' AND weekend = '1')
+											SELECT grid.id, count(departures.ID) AS ASWD
+											FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+											GROUP BY grid.id)
+										SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, geom
+										FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+									-- Scooter Weekend Arrivals	
+									trips AS (
+										WITH arrivals AS (
+											SELECT *
+											FROM ends
+											WHERE "Vehicle.Type" = 'scooter' AND weekend = '1')
+										SELECT grid.id, count(arrivals.ID) AS ASWA
+										FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+										GROUP BY grid.id)
+									SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, geom
+									FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+
+								-- E-Bikes All Departures
+								trips AS (
+									WITH departures AS (
+										SELECT *
+										FROM starts
+										WHERE "Vehicle.Type" = 'bicycle')
+									SELECT grid.id, count(departures.ID) AS AEAD
+									FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+									GROUP BY grid.id)
+								SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, geom
+								FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+							-- E-Bikes All Arrivals
+							trips AS (
+								WITH arrivals AS (
+									SELECT *
+									FROM ends
+									WHERE "Vehicle.Type" = 'bicycle')
+								SELECT grid.id, count(arrivals.ID) AS AEAA
+								FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+								GROUP BY grid.id)
+							SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, geom
+							FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+						-- E-Bikes Morning Departures
+						trips AS (
+							WITH departures AS (
+								SELECT *
+								FROM starts
+								WHERE "Vehicle.Type" = 'bicycle' AND numeric_stime::double precision >= 7 AND numeric_stime::double precision <= 10 AND weekend = '0')
+							SELECT grid.id, count(departures.ID) AS AEMD
+							FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+							GROUP BY grid.id)
+						SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, geom
+						FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+					-- E-Bikes Morning Arrivals
+					trips AS (
+						WITH arrivals AS (
+							SELECT *
+							FROM ends
+							WHERE "Vehicle.Type" = 'bicycle' AND numeric_stime::double precision >= 7 AND numeric_stime::double precision <= 10 AND weekend = '0')
+						SELECT grid.id, count(arrivals.ID) AS AEMA
+						FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+						GROUP BY grid.id)
+					SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, AEMA, geom
+					FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+				-- E-Bikes Evening Departures
+				trips AS (
+					WITH departures AS (
+						SELECT *
+						FROM starts
+						WHERE "Vehicle.Type" = 'bicycle' AND numeric_stime::double precision >= 16 AND numeric_stime::double precision <= 19 AND weekend = '0')
+					SELECT grid.id, count(departures.ID) AS AEED
+					FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+					GROUP BY grid.id)
+				SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, AEMA, AEED, geom
+				FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+			-- E-Bikes Evening Arrivals
+			trips AS (
+				WITH arrivals AS (
+					SELECT *
+					FROM ends
+					WHERE "Vehicle.Type" = 'bicycle' AND numeric_stime::double precision >= 16 AND numeric_stime::double precision <= 19 AND weekend = '0')
+				SELECT grid.id, count(arrivals.ID) AS AEEA
+				FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+				GROUP BY grid.id)
+			SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, AEMA, AEED, AEEA, geom
+			FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+		-- E-Bikes Weekend Departures
+		trips AS (
+			WITH departures AS (
+				SELECT *
+				FROM starts
+				WHERE "Vehicle.Type" = 'bicycle' AND weekend = '1')
+			SELECT grid.id, count(departures.ID) AS AEWD
+			FROM grid LEFT JOIN departures ON ST_Contains(grid.geom, departures.geom)
+			GROUP BY grid.id)
+		SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, AEMA, AEED, AEEA, AEWD, geom
+		FROM grid LEFT JOIN trips ON grid.id = trips.id),
+
+	-- E-Bikes Weekend Arrivals	
+	trips AS (
+		WITH arrivals AS (
+			SELECT *
+			FROM ends
+			WHERE "Vehicle.Type" = 'bicycle' AND weekend = '1')
+		SELECT grid.id, count(arrivals.ID) AS AEWA
+		FROM grid LEFT JOIN arrivals ON ST_Contains(grid.geom, arrivals.geom)
+		GROUP BY grid.id)
+	SELECT grid.id, ASAD, ASAA, ASMD, ASMA, ASED, ASEA, ASWD, ASWA, AEAD, AEAA, AEMD, AEMA, AEED, AEEA, AEWD, AEWA, geom
+	FROM grid LEFT JOIN trips ON grid.id = trips.id);
