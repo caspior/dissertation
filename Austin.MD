@@ -63,6 +63,6 @@ The final step in my analysis included a linear regression with the Median Annua
 | Geographically Weighted Regression | | [Grid shapefile](Austin_grid.zip) | [All trips](Aus_GWR_all.pdf), [Morning trips](Aus_GWR_mornings.pdf) |
 | Linear Regression | [R Markdown](Aus_LM.Rmd) | GWR output | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_LM.html) |
 
-[Dependent variables](Aus_variablesX.MD)
+[Dependent variables](Aus_variablesY.MD)
 
-[Independent variables](Aus_variablesY.MD)
+[Independent variables](Aus_variablesX.MD)
