@@ -51,3 +51,7 @@ For the GWR analysis I used ArcGIS Desktop's GUI. The spatial distribution of th
 ### Linear Regression
 The final step in my analysis included a linear regression with the Median Annual Income coefficient from the GWR models as the depentend variable. I used this [R Markdown](Aus_LM.Rmd) and you can see the output [here](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_LM.html).
 
+### Summary Table
+| Description | Code | Input | Output |
+| --- | --- | --- | --- |
+| Cleaning dockless trip log | [R](Aus_Cleaning.R) | [Austin's Dockless trip log](https://drive.google.com/file/d/1uHDza25XWuaCml3jeToR6JMtOgbNwScx/view?usp=sharing) | |
