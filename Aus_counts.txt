@@ -8,6 +8,19 @@ UPDATE sample SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precisi
 ALTER TABLE ends ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
 
 
+--Create indices
+CREATE INDEX grid_geom_idx
+  ON grid
+  USING GIST (geom);
+
+CREATE INDEX starts_geom_idx
+  ON starts
+  USING GIST (geom);
+
+CREATE INDEX ends_geom_idx
+  ON ends
+  USING GIST (geom);
+
 --Aggregate trips
 
 CREATE TABLE trip_counts AS (
