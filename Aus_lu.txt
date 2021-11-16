@@ -1,0 +1,26 @@
+--Convert 'land use' CRS
+-- ALTER TABLE land_use ALTER COLUMN geom TYPE Geometry(MultiPolygon, 32139) USING ST_Transform(geom, 32139);
+
+--Create Indices
+-- CREATE INDEX trip_counts_geom_idx
+--   ON trip_counts
+--   USING GIST (geom);
+
+-- CREATE INDEX land_use_geom_idx
+--   ON land_use
+--   USING GIST (geom);
+
+--Classify land uses
+
+
+--Add cells' area (meters)
+
+-- ALTER TABLE trip_counts
+-- ADD COLUMN cell_area double precision;
+
+-- UPDATE trip_counts
+-- SET cell_area = ST_Area(geom);
+
+SELECT *
+FROM land_use
+LIMIT 5;

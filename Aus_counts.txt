@@ -5,6 +5,7 @@ UPDATE sample SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precisi
 
 
 --Convert CRS
+ALTER TABLE starts ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
 ALTER TABLE ends ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
 
 
