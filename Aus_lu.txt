@@ -136,3 +136,39 @@ UPDATE austin_grid
 SET res = lu_prop.res, com = lu_prop.com, ind = lu_prop.ind, ins = lu_prop.ins, edu = lu_prop.edu, rec = lu_prop.rec
 FROM lu_prop
 WHERE austin_grid.id = lu_prop.id;
+
+
+-- Calculate Entropy
+
+UPDATE austin_grid
+	SET res = 0.0000000000000001
+	WHERE res = 0;
+	
+UPDATE austin_grid
+	SET com = 0.0000000000000001
+	WHERE com = 0;
+	
+UPDATE austin_grid
+	SET ind = 0.0000000000000001
+	WHERE ind = 0;
+	
+UPDATE austin_grid
+	SET ins = 0.0000000000000001
+	WHERE ins = 0;
+	
+UPDATE austin_grid
+	SET edu = 0.0000000000000001
+	WHERE edu = 0;
+	
+UPDATE austin_grid
+	SET rec = 0.0000000000000001
+	WHERE rec = 0;
+
+ALTER TABLE austin_grid
+ADD COLUMN entropy double precision;
+
+UPDATE austin_grid
+	SET entropy = -1*(res*ln(res)+com*ln(com)+ins*ln(ins)+ind*ln(ind)+edu*ln(edu)+rec*ln(rec))/ln(6);
+
+
+
