@@ -115,5 +115,24 @@ UPDATE lu_grid
 	WHERE lu = 'rec';
 	
 
+-- Copy proportion to main grid dataset
 
+ALTER TABLE austin_grid
+ADD COLUMN res double precision,
+ADD COLUMN com double precision,
+ADD COLUMN ind double precision,
+ADD COLUMN ins double precision,
+ADD COLUMN edu double precision,
+ADD COLUMN rec double precision;
 
+UPDATE austin_grid
+	SET res = 0, com = 0, ind = 0, ins = 0, edu = 0, rec = 0;
+
+WITH lu_prop AS (
+	SELECT lu_grid.id, sum(res) AS res, sum(com) AS com, sum(ind) AS ind, sum(ins) AS ins, sum(edu) AS edu, sum(rec) AS rec
+	FROM lu_grid
+	GROUP BY lu_grid.id)
+UPDATE austin_grid
+SET res = lu_prop.res, com = lu_prop.com, ind = lu_prop.ind, ins = lu_prop.ins, edu = lu_prop.edu, rec = lu_prop.rec
+FROM lu_prop
+WHERE austin_grid.id = lu_prop.id;
