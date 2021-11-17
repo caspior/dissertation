@@ -21,6 +21,8 @@ All the data in this research obtained from openly available online databases.
 ### GIS
 For the purpose of advanced statistics and machine learning I aggregated the trips by polygons. I created a 0.001x0.001 degrees grid over the city of Austin using this [PyQGIS script](Aus_grid.py) and aggregated trips starts and ends for the entire examined period (Aug 16th 2018 - Feb 28th 2019), only weekday morning trips, only weekday evening trips, and only weekend and holiday trips using this [PostGIS script](Aus_counts.txt).
 
+[Map gallery](Aus_maps.pdf)
+
 *More GIS analysis scripts to come
 
 ### Descriptive Statistics
@@ -68,3 +70,5 @@ The final step in my analysis included a linear regression with the Median Annua
 [Dependent variables](Aus_variablesY.MD)
 
 [Independent variables](Aus_variablesX.MD)
+
+[Map gallery](Aus_maps.pdf)
