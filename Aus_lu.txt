@@ -1,26 +1,119 @@
---Convert 'land use' CRS
--- ALTER TABLE land_use ALTER COLUMN geom TYPE Geometry(MultiPolygon, 32139) USING ST_Transform(geom, 32139);
+-- Convert 'land use' CRS
 
---Create Indices
--- CREATE INDEX trip_counts_geom_idx
---   ON trip_counts
---   USING GIST (geom);
-
--- CREATE INDEX land_use_geom_idx
---   ON land_use
---   USING GIST (geom);
-
---Classify land uses
+ALTER TABLE land_use ALTER COLUMN geom TYPE Geometry(MultiPolygon, 32139) USING ST_Transform(geom, 32139);
 
 
---Add cells' area (meters)
+-- Create Indices
 
--- ALTER TABLE trip_counts
--- ADD COLUMN cell_area double precision;
+CREATE INDEX trip_counts_geom_idx
+  ON trip_counts
+  USING GIST (geom);
 
--- UPDATE trip_counts
--- SET cell_area = ST_Area(geom);
+CREATE INDEX land_use_geom_idx
+  ON land_use
+  USING GIST (geom);
 
-SELECT *
-FROM land_use
-LIMIT 5;
+
+-- Add cells' area (meters)
+
+ALTER TABLE trip_counts
+ADD COLUMN cell_area double precision;
+
+UPDATE trip_counts
+SET cell_area = ST_Area(geom);
+
+
+-- Reclassify land uses
+
+ALTER TABLE land_use
+ADD COLUMN lu text;
+
+UPDATE land_use
+SET lu = 'other';
+
+UPDATE land_use
+	SET lu = 'res'
+	WHERE land_use >= 100 AND land_use < 300;
+
+UPDATE land_use
+	SET lu = 'com'
+	WHERE (land_use >= 300 AND land_use < 500) OR land_use = 650 OR land_use = 680;
+	
+UPDATE land_use
+	SET lu = 'ind'
+	WHERE land_use >= 500 AND land_use < 600;
+	
+UPDATE land_use
+	SET lu = 'ins'
+	WHERE land_use >= 620 AND land_use < 640;
+	
+UPDATE land_use
+	SET lu = 'edu'
+	WHERE land_use = 640;
+	
+UPDATE land_use
+	SET lu = 'rec'
+	WHERE land_use >= 720 AND land_use < 820;
+
+
+-- Intersect grid with land uses
+
+CREATE TABLE lu_grid AS (
+	WITH land_uses AS (
+		SELECT lu, ST_Union(ST_MakeValid(geom))
+		FROM land_use
+		GROUP BY lu)
+	SELECT trip_counts.id, land_uses.lu, trip_counts.cell_area, ST_Intersection(trip_counts.geom, land_uses.st_union)
+	FROM trip_counts, land_uses
+	WHERE ST_Intersects(trip_counts.geom, land_uses.st_union));
+
+
+-- Calculate lu area
+
+ALTER TABLE lu_grid
+ADD COLUMN lu_area double precision;
+
+UPDATE lu_grid
+SET lu_area = ST_Area(st_intersection);
+
+
+-- Calculate lu proportion
+
+ALTER TABLE lu_grid
+ADD COLUMN res double precision,
+ADD COLUMN com double precision,
+ADD COLUMN ind double precision,
+ADD COLUMN ins double precision,
+ADD COLUMN edu double precision,
+ADD COLUMN rec double precision;
+
+UPDATE lu_grid
+	SET res = 0, com = 0, ind = 0, ins = 0, edu = 0, rec = 0;
+	
+UPDATE lu_grid
+	SET res = lu_area/cell_area
+	WHERE lu = 'res';
+	
+UPDATE lu_grid
+	SET com = lu_area/cell_area
+	WHERE lu = 'com';
+	
+UPDATE lu_grid
+	SET ind = lu_area/cell_area
+	WHERE lu = 'ind';
+	
+UPDATE lu_grid
+	SET ins = lu_area/cell_area
+	WHERE lu = 'ins';
+	
+UPDATE lu_grid
+	SET edu = lu_area/cell_area
+	WHERE lu = 'edu';
+	
+UPDATE lu_grid
+	SET rec = lu_area/cell_area
+	WHERE lu = 'rec';
+	
+
+
+

@@ -24,7 +24,7 @@ CREATE INDEX ends_geom_idx
 
 --Aggregate trips
 
-CREATE TABLE trip_counts AS (
+CREATE TABLE austin_grid AS (
 	WITH grid AS (
 		WITH grid AS (
 			WITH grid AS (
