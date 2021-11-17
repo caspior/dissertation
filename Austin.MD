@@ -60,6 +60,7 @@ The final step in my analysis included a linear regression with the Median Annua
 | Cleaning the bikesharing trip log | [R](Aus_Cleaning_B.R) | [Austin's bikesharing trip log](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Trips/tyfh-5r8s) | |
 | Create grid | [PyQGIS](Aus_grid.py) | [Austin's boundaries](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Places) | Austin's grid |
 | Aggregate trips (dockless) | [PostGIS](Aus_counts.txt) | Austin's grid, Dockless cleaning output | Austin's grid with trip counts |
+| Calculate land use proportions | [PostGIS](Aus_lu.txt) | Austin's grid with trip counts, [Austin's land uses](https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/fj9m-h5qy) | Austin's grid with trips and land uses |
 | Descriptive statistics | [R](Aus_Descriptive.R) | Outputs of trip log cleaning scripts, [Origin destination matrix](OD_matrix.csv) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) |
 | Moran's I | [R Markdown](Aus_MoransI.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html) |
 | Random Forest | [R](Aus_RF.R), [R Markdown](Aus_RF.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_RF.html) |
