@@ -6,7 +6,7 @@ sharing – positive or negative – and mapped the common themes the articles d
 
 ### Data
 
-I reached 840 articles from news websites and known blogs [listed here](News_sources.pdf).
+I reached 840 articles from news websites and known blogs [listed here](News_articles.pdf).
 
 ### Sentiment Analysis
 
