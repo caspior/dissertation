@@ -6,7 +6,7 @@ sharing – positive or negative – and mapped the common themes the articles d
 
 ### Data
 
-I reached 840 articles from news websites and known blogs [listed here](News_articles.pdf).
+I retrieved 840 e-scooter related articles published in news websites and known blogs in 10 US metropolitan areas and national publications between September 2017 and August 2020. To reach those articles I used Google news search with the key words "scooters" and "scooters CITY NAME". [This table](News_articles.pdf) lists all the articles I cited and this table summarizes it.
 
 ### Sentiment Analysis
 
