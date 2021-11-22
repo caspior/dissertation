@@ -1,0 +1,60 @@
+-- Convert CRS
+
+ALTER TABLE bikeways ALTER COLUMN geom TYPE Geometry(MultiLineString, 32139) USING ST_Transform(geom, 32139);
+ALTER TABLE roads ALTER COLUMN geom TYPE Geometry(MultiLineString, 32139) USING ST_Transform(geom, 32139);
+
+-- Create Indices
+
+CREATE INDEX roads_geom_idx
+  ON roads
+  USING GIST (geom);
+
+CREATE INDEX bikeways_geom_idx
+  ON bikeways
+  USING GIST (geom);
+  
+-- Add bikeway variables to austin_grid
+
+ALTER TABLE austin_grid
+ADD COLUMN bikeway integer,
+ADD COLUMN BW_length double precision,
+ADD COLUMN BW2roads double precision;
+
+UPDATE austin_grid
+	SET bikeway = 0, BW_length = 0, BW2roads = 0;
+	
+-- Calculate variables
+
+WITH variables AS (
+	WITH bkwy_lengths AS (
+		WITH bkwy_grid AS (
+			SELECT austin_grid.id, bikeways.full_id, ST_Intersection(austin_grid.geom, bikeways.geom) AS geom
+			FROM austin_grid, bikeways
+			WHERE ST_Intersects(austin_grid.geom, bikeways.geom))
+		SELECT id, full_id, geom, ST_Length(geom) AS lengths
+		FROM bkwy_grid),
+
+	road_lengths AS (
+		WITH road_grid AS (
+			SELECT austin_grid.id, roads.cad_id, ST_Intersection(austin_grid.geom, roads.geom) AS geom
+			FROM austin_grid, roads
+			WHERE ST_Intersects(austin_grid.geom, roads.geom))
+		SELECT id, cad_id, geom, ST_Length(geom) AS lengths
+		FROM road_grid)
+
+	SELECT id, CEIL(SUM(bkwy_lengths.lengths)/(SUM(bkwy_lengths.lengths)+1)) AS bikeway,
+		SUM(bkwy_lengths.lengths) AS BW_length,
+		(SUM(bkwy_lengths.lengths)+1)/(SUM(road_lengths.lengths)+1) AS BW2roads
+	FROM bkwy_lengths LEFT JOIN road_lengths USING (id)
+	GROUP BY id)
+
+UPDATE austin_grid
+SET bikeway = variables.bikeway, BW_length = variables.BW_length, BW2roads = variables.BW2roads
+FROM variables
+WHERE austin_grid.id = variables.id;
+
+-- Replace NULLs
+
+UPDATE austin_grid
+SET BW2roads = 99
+WHERE BW2roads IS NULL;
