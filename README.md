@@ -1,6 +1,6 @@
 # My dissertation
 
-In this repository I present my dissertation analysis.
+In this repository I present my dissertation analysis
 Although I have submitted my dissertation, this repository is a work in progress.
 
 The dissertation includes three analytical:
