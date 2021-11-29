@@ -13,4 +13,4 @@ Due to the large variaty of data sources in this study I preffered manually codi
 
 ### Word Count Analysis
 
-The second nalytical step of this chapter is a word count analysis. After cleaning and steming the text I counted to appearance of the 20 words that can tell about the content of the paper. I included words like 'sidewalk' and 'regulation' but excluded words such as 'city' and 'scooter'. I used this [R markdown](News_count.Rmd) and generated this [markdown output]().
+The second nalytical step of this chapter is a word count analysis. After cleaning and steming the text I counted to appearance of the 20 words that can tell about the content of the paper. I included words like 'sidewalk' and 'regulation' but excluded words such as 'city' and 'scooter'. I used this [R markdown](News_count.Rmd) and generated this [markdown output](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/News_count.html).
