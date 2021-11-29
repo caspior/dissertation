@@ -1,0 +1,227 @@
+---
+title: "Word Counts"
+author: "Or Caspi"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(SnowballC)
+library(tidytext)
+
+articles <- read.csv("C:/Users/orcas/Documents/GitHub/dissertation/News_data.csv")
+scope <- read.csv("C:/Users/orcas/Documents/GitHub/dissertation/News_scope.csv")
+```
+
+```{r}
+#Cleaning the script:
+n <- nrow(articles)
+for(i in 1:n) {
+  if (articles[i,3]=="") articles[i,3] <- NA
+  articles[i,8] <- gsub('\t|\n|\"', " ", articles[i,8])
+}
+```
+
+## Functions
+
+```{r}
+clean_articles <- function(articles) {
+  
+  #Converting texts to tidy texts:
+  tidy_text <- articles %>%
+    select(Title,Content) %>%
+    unnest_tokens("word", Content)
+
+  #Removing stop words:
+  data("stop_words")
+    tidy_text <-tidy_text %>%
+      anti_join(stop_words)
+
+  #Removing spaces:
+  tidy_text$word <- gsub("\\s+","",tidy_text$word)
+  tidy_text$word <- gsub("’","",tidy_text$word)
+
+  #Stemming:
+  tidy_text<-tidy_text %>%
+      mutate_at("word", funs(wordStem((.), language="en")))
+  
+  return(tidy_text)
+}
+```
+
+```{r}
+count_words <- function(articles){
+  
+  # Creating the table:
+  sent_words <- data.frame(Words=character(), All=double(), Nat=double(), LA=double(), SD=double(), DC=double(), SF=double(), Aus=double(), Cha=double(), Den=double(), Por=double(), Bal=double(), Tam=double())
+  
+  sent_words[1,1] <- "sidewalk"
+  sent_words[2,1] <- "regul"
+  sent_words[3,1] <- "fatal"
+  sent_words[4,1] <- "injuri"
+  sent_words[5,1] <- "helmet"
+  sent_words[6,1] <- "pedestrian"
+  sent_words[7,1] <- "ban"
+  sent_words[8,1] <- "concern"
+  sent_words[9,1] <- "safe"
+  sent_words[10,1] <- "block"
+  sent_words[11,1] <- "complaint"
+  sent_words[12,1] <- "hit"
+  sent_words[13,1] <- "popular"
+  sent_words[14,1] <- "accid"
+  sent_words[15,1] <- "law"
+  sent_words[16,1] <- "speed"
+  sent_words[17,1] <- "health"
+  sent_words[18,1] <- "crash"
+  sent_words[19,1] <- "access"
+  sent_words[20,1] <- "rule"
+  sent_words[21,1] <- "Regulations"
+  sent_words[22,1] <- "Safety"
+  sent_words[23,1] <- "Conflicts"
+
+  #All
+  words <- clean_articles(articles)
+
+  top_words <-
+    words %>%
+      count(word) %>%
+        arrange(desc(n))
+  
+  top_words$word <- factor(top_words$word, levels = top_words$word[order(top_words$n,decreasing=TRUE)])
+  total <- sum(top_words$n)
+  top_words$percent <- round(top_words$n/total,8)*100
+
+  for (j in 1:nrow(sent_words)){
+    if(length(which(top_words$word==sent_words[[j,1]]))>0)
+      sent_words[j,2] <- top_words[which(top_words$word==sent_words[[j,1]]),3]
+  }
+  
+  #By Scope
+  for (i in 1:11){
+    
+    if(length(which(articles$Scope==scope[[i,1]]))==0)
+      next
+    words_scope <- clean_articles(articles[which(articles$Scope==scope[[i,1]]),])
+    
+    top_words <-
+      words_scope %>%
+        count(word) %>%
+          arrange(desc(n))
+  
+    top_words$word <- factor(top_words$word, levels = top_words$word[order(top_words$n,decreasing=TRUE)])
+    total <- sum(top_words$n)
+    top_words$percent <- round(top_words$n/total,8)*100
+
+    for (j in 1:20){
+      if (length(which(top_words$word==sent_words[[j,1]]))>0)
+        sent_words[j,i+2] <- top_words[which(top_words$word==sent_words[[j,1]]),3]
+    }
+  }
+  
+  sent_words[is.na(sent_words)] = 0
+  
+  for (i in 2:13){
+    sent_words[21,i] <- sent_words[2,i] + sent_words[20,i] + sent_words[15,i] + sent_words[7,i]
+    sent_words[22,i] <- sent_words[4,i] + sent_words[5,i] + sent_words[9,i] + sent_words[12,i] + sent_words[14,i] + sent_words[18,i] + sent_words[17,i] + sent_words[3,i]
+    sent_words[23,i] <- sent_words[1,i] + sent_words[6,i] + sent_words[10,i] + sent_words[11,i]
+  }
+  
+  return(sent_words)
+}
+```
+
+### Counts
+
+```{r message=FALSE}
+all <- count_words(articles)
+articles$yemo <- articles$Month + 12*(articles$Year-2017)
+
+trend <- list()
+
+for (i in 0:11){
+  top <- count_words(articles[which(articles$yemo >= 9+3*i & articles$yemo <= 11+3*i),])
+  trend <- append(trend, list(top))
+}
+```
+
+```{r}
+issues <- list()
+for (i in 2:13){
+  region <- data.frame(Index=numeric(),Regulation=numeric(),Safety=numeric(),Conflicts=numeric())
+  for (j in 1:12){
+    region[j,1] <- j
+    region[j,2] <- trend[[j]][[i]][21]
+    region[j,3] <- trend[[j]][[i]][22]
+    region[j,4] <- trend[[j]][[i]][23]
+  }
+  issues <- append(issues, list(region))
+}
+```
+
+
+### Plots
+
+```{r, fig.height=10, fig.width=8}
+for (j in 2:13){
+  bar_plot <- all[1:20,c(1,j)]
+  bar_plot$color <- ""
+  for (i in 1:20){
+    if (bar_plot[i,1]=="regul" | bar_plot[i,1]=="rule" | bar_plot[i,1]=="law" | bar_plot[i,1]=="ban")
+      bar_plot[i,3] <- "darkorchid4"
+    if (bar_plot[i,1]=="injuri" | bar_plot[i,1]=="helmet" | bar_plot[i,1]=="safe" | bar_plot[i,1]=="hit" | bar_plot[i,1]=="accid" | bar_plot[i,1]=="crash" | bar_plot[i,1]=="fatal" | bar_plot[i,1]=="health")
+      bar_plot[i,3] <- "darkorange2"
+    if (bar_plot[i,1]=="sidewalk" | bar_plot[i,1]=="pedestrian" | bar_plot[i,1]=="block" | bar_plot[i,1]=="complaint")
+      bar_plot[i,3] <- "lightseagreen"
+    if (bar_plot[i,3] == "")
+      bar_plot[i,3] <- "gray50"
+  }
+
+  if (j==2)
+    title <- "All"
+  else
+    title <- scope[j-2,1]
+
+  print(ggplot(data=bar_plot, aes(y=reorder(Words, bar_plot[[2]]), x=bar_plot[[2]])) +
+    geom_bar(stat = "identity", fill=bar_plot$color) +
+    labs(x="Share (%)", y="", title=title) +
+    theme(plot.title=element_text(size=30,face="bold"), axis.text=element_text(size=26), axis.title=element_text(size=22,face="bold"))
+  )
+}
+```
+
+
+```{r}
+library(lubridate)
+
+for (i in 1:12){
+
+  df <- issues[[i]]
+  if (i==1){
+    title <- "All"
+    deploy <- as.Date(scope[[1,2]], "%m/%d/%Y")
+  }
+  else{
+    title <- scope[i-1,1]
+    deploy <- as.Date(scope[[i-1,2]], "%m/%d/%Y")
+  }
+  
+  yemo <- (month(deploy)-8 + 12*(year(deploy)-2017))/3
+  if (yemo < 1)
+    yemo <- 1
+  
+  print(ggplot() +
+    geom_vline(xintercept=yemo, linetype="longdash", color="black", size=1) +
+    geom_line(data=df,aes(x=Index, y=Regulation), color="darkorchid4", size=2) +
+    geom_line(data=df,aes(x=Index, y=Safety), color="darkorange2", size=2) +
+    geom_line(data=df,aes(x=Index, y=Conflicts), color="lightseagreen", size=2) +
+    scale_x_continuous(breaks=c(2,6,10), labels=c("2018","2019","2020")) +
+    #ylim(0,6) +
+    labs(x="", y="Share (%)", title=title) +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+  )
+}
+```
+
