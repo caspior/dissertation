@@ -12,8 +12,8 @@ library(ggplot2)
 library(SnowballC)
 library(tidytext)
 
-articles <- read.csv("c:/Users/Or Laptop/Dropbox/PhD/Media coverage/Data/All.csv")
-scope <- read.csv("c:/Users/Or Laptop/Dropbox/PhD/Media coverage/Data/scope.csv")
+articles <- read.csv("C:/Users/orcas/Documents/GitHub/dissertation/News_data.csv")
+scope <- read.csv("C:/Users/orcas/Documents/GitHub/dissertation/News_scope.csv")
 ```
 
 ```{r}
@@ -25,6 +25,12 @@ for(i in 1:n) {
 }
 ```
 
+```{r}
+#Converting texts to tidy texts:
+tidy_text <- articles %>%
+  select(Title,Content) %>%
+  unnest_tokens("word", Content)
+```
 
 ## Attitudes
 
@@ -110,20 +116,20 @@ positive$Title <- row.names(positive)
 articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
 ```
 ```{r}
-articles[is.na(articles$negative),11] <- 0
-articles[is.na(articles$positive),12] <- 0
+articles[is.na(articles$negative),10] <- 0
+articles[is.na(articles$positive),11] <- 0
 articles$attitude <- articles$positive - articles$negative
 ```
 
 ```{r}
 articles$bing <- 0
-articles[which(articles$attitude < 0),14] <- -1
-articles[which(articles$attitude == 0),14] <- 0
-articles[which(articles$attitude > 0),14] <- 1
+articles[which(articles$attitude < 0),13] <- -1
+articles[which(articles$attitude == 0),13] <- 0
+articles[which(articles$attitude > 0),13] <- 1
 ```
 
 ```{r}
-articles <- articles[,-c(11:13)]
+articles <- articles[,-c(10:12)]
 ```
 
 
