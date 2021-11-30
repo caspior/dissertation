@@ -1,0 +1,601 @@
+---
+title: "Content Analysis"
+author: "Or Caspi"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(SnowballC)
+library(tidytext)
+
+articles <- read.csv("c:/Users/Or Laptop/Dropbox/PhD/Media coverage/Data/All.csv")
+scope <- read.csv("c:/Users/Or Laptop/Dropbox/PhD/Media coverage/Data/scope.csv")
+```
+
+```{r}
+#Cleaning the script:
+n <- nrow(articles)
+for(i in 1:n) {
+  if (articles[i,3]=="") articles[i,3] <- NA
+  articles[i,8] <- gsub('\t|\n|\"', " ", articles[i,8])
+}
+```
+
+
+## Attitudes
+
+## Bing
+
+### Getting dictionary
+```{r}
+library(stringr)
+
+bing <- get_sentiments("bing")
+```
+``` {r}
+for (i in 1:nrow(bing))
+  if (str_detect(bing[i,1],"-"))
+    bing[i,1] <- "aaa"
+bing <- bing[which(bing$word!="aaa"),]
+```
+```{r}
+bing_tidy <- bing %>%
+  select(word, sentiment) %>%
+  unnest_tokens("word", word)
+```
+
+```{r}
+#Removing stop words:
+data("stop_words")
+  bing_tidy <-bing_tidy %>%
+    anti_join(stop_words)
+
+#Stemming:
+  bing_tidy<-bing_tidy %>%
+      mutate_at("word", funs(wordStem((.), language="en")))
+  
+#Removing duplicates:
+  bing_tidy <- unique(bing_tidy)
+```
+
+### Adding sentiments
+```{r}
+new_sent <- c("sidewalk", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("rule", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("ban", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("block", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("hit", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("accid", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("anti", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("vandal", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("venghaus", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("curfew", "negative")
+bing_tidy <- rbind(bing_tidy, new_sent)
+new_sent <- c("allow", "positive")
+bing_tidy <- rbind(bing_tidy, new_sent)
+bing_tidy[which(bing_tidy$word=="hospit"),2] <- "negative"
+```
+
+```{r}
+text_sentiment <- tidy_text %>%
+  inner_join(bing_tidy) %>%
+    count(Title, sentiment) 
+```
+
+```{r}
+neg <- text_sentiment[which(text_sentiment$sentiment=="negative"),]
+negative <- tapply(neg$n, neg$Title, max)
+negative <- as.data.frame(negative)
+negative$Title <- row.names(negative)
+articles <- merge.data.frame(articles,negative, by = "Title", all.x = T)
+```
+```{r}
+pos <- text_sentiment[which(text_sentiment$sentiment=="positive"),]
+positive <- tapply(pos$n, pos$Title, max)
+positive <- as.data.frame(positive)
+positive$Title <- row.names(positive)
+articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
+```
+```{r}
+articles[is.na(articles$negative),11] <- 0
+articles[is.na(articles$positive),12] <- 0
+articles$attitude <- articles$positive - articles$negative
+```
+
+```{r}
+articles$bing <- 0
+articles[which(articles$attitude < 0),14] <- -1
+articles[which(articles$attitude == 0),14] <- 0
+articles[which(articles$attitude > 0),14] <- 1
+```
+
+```{r}
+articles <- articles[,-c(11:13)]
+```
+
+
+
+## AFINN
+
+### Getting dictionary
+```{r}
+afinn <- get_sentiments("afinn")
+```
+``` {r}
+for (i in 1:nrow(afinn))
+  if (str_detect(afinn[i,1],"-"))
+    afinn[i,1] <- "aaa"
+afinn <- afinn[which(afinn$word!="aaa"),]
+```
+```{r}
+afinn$sentiment <- "positive"
+for (i in 1:nrow(afinn)) {
+  if (afinn[[i,2]] < 0)
+    afinn[[i,3]] <- "negative"
+  if (afinn[[i,2]] == 0)
+    afinn[[i,3]] <- "neutral"
+}
+
+```
+```{r}
+afinn_tidy <- afinn %>%
+  select(word, sentiment) %>%
+  unnest_tokens("word", word)
+```
+
+```{r}
+#Removing stop words:
+data("stop_words")
+  afinn_tidy <-afinn_tidy %>%
+    anti_join(stop_words)
+
+#Stemming:
+  afinn_tidy<-afinn_tidy %>%
+      mutate_at("word", funs(wordStem((.), language="en")))
+  
+#Removing duplicates:
+  afinn_tidy <- unique(afinn_tidy)
+```
+
+### Adding sentiments
+```{r}
+new_sent <- c("sidewalk", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("rule", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("ban", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("block", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("hit", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("accid", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("anti", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("vandal", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("venghaus", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("curfew", "negative")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+new_sent <- c("allow", "positive")
+afinn_tidy <- rbind(afinn_tidy, new_sent)
+afinn_tidy[which(afinn_tidy$word=="hospit"),2] <- "negative"
+```
+
+```{r}
+text_sentiment <- tidy_text %>%
+  inner_join(afinn_tidy) %>%
+    count(Title, sentiment) 
+```
+
+```{r}
+neg <- text_sentiment[which(text_sentiment$sentiment=="negative"),]
+negative <- tapply(neg$n, neg$Title, max)
+negative <- as.data.frame(negative)
+negative$Title <- row.names(negative)
+articles <- merge.data.frame(articles,negative, by = "Title", all.x = T)
+```
+```{r}
+pos <- text_sentiment[which(text_sentiment$sentiment=="positive"),]
+positive <- tapply(pos$n, pos$Title, max)
+positive <- as.data.frame(positive)
+positive$Title <- row.names(positive)
+articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
+```
+```{r}
+articles[is.na(articles$negative),12] <- 0
+articles[is.na(articles$positive),13] <- 0
+articles$attitude <- articles$positive - articles$negative
+```
+
+```{r}
+articles$afinn <- 0
+articles[which(articles$attitude < 0),15] <- -1
+articles[which(articles$attitude == 0),15] <- 0
+articles[which(articles$attitude > 0),15] <- 1
+```
+
+```{r}
+articles <- articles[,-c(12:14)]
+```
+
+
+
+## NRC
+
+### Getting dictionary
+```{r}
+nrc <- get_sentiments("nrc")
+```
+``` {r}
+for (i in 1:nrow(nrc))
+  if (str_detect(nrc[i,1],"-"))
+    nrc[i,1] <- "aaa"
+nrc <- nrc[which(nrc$word!="aaa"),]
+```
+```{r}
+for (i in 1:nrow(nrc)) {
+  if (nrc[[i,2]] == "fear" | nrc[[i,2]] == "sadness" | nrc[[i,2]] == "disgust" | nrc[[i,2]] == "anger")
+    nrc[[i,2]] <- "negative"
+  if (nrc[[i,2]] == "trust" | nrc[[i,2]] == "surprise" | nrc[[i,2]] == "joy" | nrc[[i,2]] == "anticipation")
+    nrc[[i,2]] <- "positive"
+}
+
+```
+```{r}
+nrc_tidy <- nrc %>%
+  select(word, sentiment) %>%
+  unnest_tokens("word", word)
+```
+
+```{r}
+#Removing stop words:
+data("stop_words")
+  nrc_tidy <-nrc_tidy %>%
+    anti_join(stop_words)
+
+#Stemming:
+  nrc_tidy<-nrc_tidy %>%
+      mutate_at("word", funs(wordStem((.), language="en")))
+  
+#Removing duplicates:
+  nrc_tidy <- unique(nrc_tidy)
+```
+
+### Adding sentiments
+```{r}
+new_sent <- c("sidewalk", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("rule", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("ban", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("block", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("hit", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("accid", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("anti", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("vandal", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("venghaus", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("curfew", "negative")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+new_sent <- c("allow", "positive")
+nrc_tidy <- rbind(nrc_tidy, new_sent)
+nrc_tidy[which(nrc_tidy$word=="hospit"),2] <- "negative"
+```
+
+```{r}
+text_sentiment <- tidy_text %>%
+  inner_join(nrc_tidy) %>%
+    count(Title, sentiment) 
+```
+
+```{r}
+neg <- text_sentiment[which(text_sentiment$sentiment=="negative"),]
+negative <- tapply(neg$n, neg$Title, max)
+negative <- as.data.frame(negative)
+negative$Title <- row.names(negative)
+articles <- merge.data.frame(articles,negative, by = "Title", all.x = T)
+```
+```{r}
+pos <- text_sentiment[which(text_sentiment$sentiment=="positive"),]
+positive <- tapply(pos$n, pos$Title, max)
+positive <- as.data.frame(positive)
+positive$Title <- row.names(positive)
+articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
+```
+```{r}
+articles[is.na(articles$negative),13] <- 0
+articles[is.na(articles$positive),14] <- 0
+articles$attitude <- articles$positive - articles$negative
+```
+
+```{r}
+articles$nrc <- 0
+articles[which(articles$attitude < 0),16] <- -1
+articles[which(articles$attitude == 0),16] <- 0
+articles[which(articles$attitude > 0),16] <- 1
+```
+
+```{r}
+articles <- articles[,-c(13:15)]
+```
+
+```{r}
+articles$att <- (articles$bing + articles$afinn + articles$nrc)/3
+articles[which(articles$att<0),14] <- floor(articles[which(articles$att<0),14])
+articles[which(articles$att>0),14] <- ceiling(articles[which(articles$att>0),14])
+articles$att <- as.integer(articles$att)
+```
+
+
+## Sentiment Plots
+
+```{r}
+articles$yemo <- articles$Month + 12*(articles$Year-2017)
+```
+
+```{r}
+by_yemo <- group_by(articles, yemo, att) 
+by_yemo <- summarise(by_yemo, n=n())
+
+by_yemo$att <- as.character(by_yemo$att)
+```
+
+```{r, fig.width=6,fig.height=4}
+ggplot(data=by_yemo) +
+  geom_col(aes(x=yemo, y=n, fill=att), position="fill", show.legend=FALSE) +
+  scale_fill_manual(name="Attitude",breaks=c("-1","0","1"),labels=c("Negative","Neutral","Positive"),values=c("#FF6666","#FFFF66","#00CC33")) +
+  scale_x_continuous(breaks=c(9,15,21,27,33,39,45),labels=c("Sep\n2017","Mar\n2018","Sep\n2018","Mar\n2019","Sep\n2019","Mar\n2020","Sep\n2020")) +
+  labs(x="", y="Ratio", title="All") +
+  theme(plot.title=element_text(size=27,face="bold"), axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold"))
+```
+```{r}
+by_yemo <- group_by(articles, Scope, yemo, att) 
+by_yemo <- summarise(by_yemo, n=n())
+
+by_yemo$att <- as.character(by_yemo$att)
+```
+
+```{r, fig.width=6,fig.height=4}
+for (i in 1:11){
+  print(ggplot(data=by_yemo[which(by_yemo$Scope==scope[[i,1]]),]) +
+    geom_col(aes(x=yemo,y=n,fill=att),position="fill", show.legend=FALSE) +
+    scale_fill_manual(name="Attitude",breaks=c("-1","0","1"),labels=c("Negative","Neutral","Positive"),values=c("#FF6666","#ffbc00","#00CC33")) +
+    geom_vline(xintercept=scope[[i,4]], linetype="longdash", color="black", size=1) +
+    scale_x_continuous(breaks=c(9,15,21,27,33,39,45),labels=c("Sep\n2017","Mar\n2018","Sep\n2018","Mar\n2019","Sep\n2019","Mar\n2020","Sep\n2020")) +
+    labs(x="", y="Ratio", title=scope[[i,1]]) +
+    theme(plot.title=element_text(size=27,face="bold"), axis.text=element_text(size=16), axis.title=element_text(size=22,face="bold")))
+}
+```
+
+```{r}
+ggplot(data=articles) +
+  geom_bar(aes(x=yemo,fill=as.character(att)),position="fill") +
+  scale_fill_manual(name="Attitude",labels=c("Negative","Neutral","Positive"),values=c("#FF6666","#ffbc00","#00CC33")) +
+  scale_x_continuous(breaks=c(9,12,15,18,21,24,27,30,33,36,39,42),labels=c("Sep17","Dec17","Mar18","Jun18","Sep18","Dec18","Mar19","Jun19","Sep19","Dec19","Mar20","Jun20")) +
+  labs(x="Month", y="Ratio", title="All")
+```
+
+```{r}
+for (i in 1:11){
+  print(ggplot(data=articles[which(articles$Scope==scope[[i,1]]),]) +
+    geom_bar(aes(x=yemo,fill=as.character(att)),position="stack") +
+    scale_fill_manual(name="Attitude",breaks=c("-1","0","1"),labels=c("Negative","Neutral","Positive"),values=c("#FF6666","#ffbc00","#00CC33")) +
+    scale_x_continuous(breaks=c(9,12,15,18,21,24,27,30,33,36,39,42),labels=c("Sep17","Dec17","Mar18","Jun18","Sep18","Dec18","Mar19","Jun19","Sep19","Dec19","Mar20","Jun20")) +
+    labs(x="Month", y="Ratio", title=scope[[i,1]]))
+}
+```
+
+```{r}
+ggplot() +
+  geom_freqpoly(data=articles[which(articles$att==-1),],aes(articles[which(articles$att==-1),10]),binwidth=30, color="#FF6666", size=2) +
+  geom_freqpoly(data=articles[which(articles$att==0),],aes(articles[which(articles$att==0),10]),binwidth=30, color="#ffbc00", size=2) +
+  geom_freqpoly(data=articles[which(articles$att==1),],aes(articles[which(articles$att==1),10]),binwidth=30, color="#00CC33", size=2) +
+#  annotate("text", x=as.Date("2020-3-1"), y=33, label="Attitude", hjust = 0) +
+#  annotate("text", x=as.Date("2020-5-1"), y=30, label="Negative", hjust = 0) +
+#  annotate("segment", x=as.Date("2020-2-1"), y=30, xend=as.Date("2020-4-1"), yend=30, color="#FF6666", size=1.5) +
+#  annotate("text", x=as.Date("2020-5-1"), y=28, label="Neutral", hjust = 0) +
+#  annotate("segment", x=as.Date("2020-2-1"), y=28, xend=as.Date("2020-4-1"), yend=28, color="#ffbc00", size=1.5) +
+#  annotate("text", x=as.Date("2020-5-1"), y=26, label="Positive", hjust = 0) +
+#  annotate("segment", x=as.Date("2020-2-1"), y=26, xend=as.Date("2020-4-1"), yend=26, color="#00CC33", size=1.5) +
+  scale_x_date(date_breaks="4 months", date_labels="%b %y") +
+  labs(x="Month", y="Count", title="All")
+```
+```{r}
+ggplot() +
+  geom_freqpoly(data=articles[which(articles$att==-1),],aes(articles[which(articles$att==-1),10]),binwidth=30, color="#FF6666", size=2) +
+  geom_freqpoly(data=articles[which(articles$att==0),],aes(articles[which(articles$att==0),10]),binwidth=30, color="#ffbc00", size=2) +
+  geom_freqpoly(data=articles[which(articles$att==1),],aes(articles[which(articles$att==1),10]),binwidth=30, color="#00CC33", size=2) +
+  scale_x_date(date_breaks="6 months", date_labels="%b\n%Y") +
+  labs(x="", y="Count", title="All") +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+```
+
+```{r}
+for(i in 2:11) {
+  print(ggplot() +
+    geom_vline(xintercept=as.Date(scope[[i,2]], "%m/%d/%Y"), linetype="longdash", color="black", size=1) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==0),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==0),10]),binwidth=30, color="#ffbc00", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),10]),binwidth=30, color="#FF6666", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==1),10]),binwidth=30, color="#00CC33", size=2) +
+    annotate("text", x=as.Date("2019-12-1"), y=8, label="Attitude", hjust = 0, fontface=2) +
+    annotate("text", x=as.Date("2020-2-1"), y=7.5, label="Negative", hjust = 0) +
+    annotate("segment", x=as.Date("2019-11-1"), y=7.5, xend=as.Date("2020-1-1"), yend=7.5, color="#FF6666", size=1.5) +
+    annotate("text", x=as.Date("2020-2-1"), y=7, label="Neutral", hjust = 0) +
+    annotate("segment", x=as.Date("2019-11-1"), y=7, xend=as.Date("2020-1-1"), yend=7, color="#ffbc00", size=1.5) +
+    annotate("text", x=as.Date("2020-2-1"), y=6.5, label="Positive", hjust = 0) +
+    annotate("segment", x=as.Date("2019-11-1"), y=6.5, xend=as.Date("2020-1-1"), yend=6.5, color="#00CC33", size=1.5) +
+    annotate("text", x=as.Date("2020-2-1"), y=6, label="Scooters deployed", hjust = 0) +  
+    annotate("segment", x=as.Date("2019-11-1"), y=6, xend=as.Date("2019-11-20"), yend=6, color="black", size=1) +
+    annotate("segment", x=as.Date("2019-11-26"), y=6, xend=as.Date("2019-12-15"), yend=6, color="black", size=1) +
+    annotate("segment", x=as.Date("2019-12-21"), y=6, xend=as.Date("2019-12-31"), yend=6, color="black", size=1) +
+    scale_x_date(date_breaks="2 months", date_labels="%b \n%y") +
+    labs(x="Month", y="Count", title=scope[[i,1]]))
+}
+```
+
+```{r}
+for(i in 1:11) {
+  print(ggplot() +
+    geom_vline(xintercept=as.Date(scope[[i,2]], "%m/%d/%Y"), linetype="longdash", color="black", size=1) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==0),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==0),10]),binwidth=30, color="#ffbc00", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),10]),binwidth=30, color="#FF6666", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==1),10]),binwidth=30, color="#00CC33", size=2) +
+    scale_x_date(date_breaks="6 months", date_labels="%b\n%Y") +
+    scale_y_continuous(breaks=c(0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30),limits = c(0,11)) +
+    #ylim(0,11) +
+    labs(x="", y="Count", title=scope[[i,1]]) +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+  )
+}
+```
+```{r}
+for(i in 1:1) {
+  print(ggplot() +
+    geom_vline(xintercept=as.Date(scope[[i,2]], "%m/%d/%Y"), linetype="longdash", color="black", size=1) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==0),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==0),10]),binwidth=30, color="#ffbc00", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==-1),10]),binwidth=30, color="#FF6666", size=2) +
+    geom_freqpoly(data=articles[which(articles$Scope==scope[[i,1]] & articles$att==1),],aes(articles[which(articles$Scope==scope[[i,1]] & articles$att==1),10]),binwidth=30, color="#00CC33", size=2) +
+    scale_x_date(date_breaks="6 months", date_labels="%b\n%Y") +
+    scale_y_continuous(limits=c(0,12),breaks=c(0,2,4,6,8,10,12)) +
+    labs(x="", y="Count", title=scope[[i,1]]) +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+  )
+}
+```
+
+```{r}
+ggplot() +
+    
+  #All
+  geom_area(data=articles[which(articles$att==-1),],aes(articles[which(articles$att==-1),10]),stat="bin", binwidth=30, color="black") +
+  
+  geom_vline(xintercept=as.Date(scope[[2,2]], "%m/%d/%Y"), linetype="longdash", color="yellow", size=1) +
+  geom_vline(xintercept=as.Date(scope[[3,2]], "%m/%d/%Y"), linetype="longdash", color="hotpink", size=1) +
+  geom_vline(xintercept=as.Date(scope[[4,2]], "%m/%d/%Y"), linetype="longdash", color="chartreuse", size=1) +
+  geom_vline(xintercept=as.Date(scope[[5,2]], "%m/%d/%Y"), linetype="longdash", color="cadetblue1", size=1) +
+  geom_vline(xintercept=as.Date(scope[[6,2]], "%m/%d/%Y"), linetype="longdash", color="red", size=1) +
+  geom_vline(xintercept=as.Date(scope[[7,2]], "%m/%d/%Y"), linetype="longdash", color="peru", size=1) +
+  geom_vline(xintercept=as.Date(scope[[8,2]], "%m/%d/%Y"), linetype="longdash", color="chocolate1", size=1) +
+  geom_vline(xintercept=as.Date(scope[[9,2]], "%m/%d/%Y"), linetype="longdash", color="darkorchid", size=1) +
+  geom_vline(xintercept=as.Date(scope[[10,2]], "%m/%d/%Y"), linetype="longdash", color="blue", size=1) +
+  geom_vline(xintercept=as.Date(scope[[11,2]], "%m/%d/%Y"), linetype="longdash", color="gray55", size=1) +
+  
+  #Washington, DC
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Washington, DC"),], aes(articles[which(articles$att==-1 & articles$Scope=="Washington, DC"),10]), binwidth=30, color="chartreuse", size=1) +
+
+  #Tampa Bay Area, FL
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Tampa Bay Area, FL"),], aes(articles[which(articles$att==-1 & articles$Scope=="Tampa Bay Area, FL"),10]), binwidth=30, color="gray55", size=1) +
+
+  #San Francisco Bay Area, CA
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="San Francisco Bay Area, CA"),], aes(articles[which(articles$att==-1 & articles$Scope=="San Francisco Bay Area, CA"),10]), binwidth=30, color="cadetblue1", size=1) +
+
+  #San Diego, CA
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="San Diego, CA"),], aes(articles[which(articles$att==-1 & articles$Scope=="San Diego, CA"),10]), binwidth=30, color="hotpink", size=1) +
+
+  #Portland, OR
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Portland, OR"),], aes(articles[which(articles$att==-1 & articles$Scope=="Portland, OR"),10]), binwidth=30, color="darkorchid", size=1) +
+
+  #Los Angeles, CA
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Los Angeles, CA"),], aes(articles[which(articles$att==-1 & articles$Scope=="Los Angeles, CA"),10]), binwidth=30, color="yellow", size=1) +
+
+  #Denver, CO
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Denver, CO"),], aes(articles[which(articles$att==-1 & articles$Scope=="Denver, CO"),10]), binwidth=30, color="chocolate1", size=1) +
+
+  #Charlotte, NC
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Charlotte, NC"),], aes(articles[which(articles$att==-1 & articles$Scope=="Charlotte, NC"),10]), binwidth=30, color="peru", size=1) +
+
+  #Baltimore, MD
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Baltimore, MD"),], aes(articles[which(articles$att==-1 & articles$Scope=="Baltimore, MD"),10]), binwidth=30, color="blue", size=1) +
+
+  #Austin, TX
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="Austin, TX"),], aes(articles[which(articles$att==-1 & articles$Scope=="Austin, TX"),10]), binwidth=30, color="red", size=1) +
+
+  #National
+  geom_freqpoly(data=articles[which(articles$att==-1 & articles$Scope=="National"),], aes(articles[which(articles$att==-1 & articles$Scope=="National"),10]), binwidth=30, color="white", size=1) +
+  
+  scale_x_date(date_breaks="2 months", date_labels="%b\n%Y", limits = c(as.Date("2017-09-01"),as.Date("2020-08-31"))) +
+  labs(x="", y="Count", title="Negative Articles") +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+```
+
+```{r}
+ggplot() +
+  
+  #All
+  geom_area(data=articles[which(articles$att==1),],aes(articles[which(articles$att==1),10]),stat="bin", binwidth=30, color="black") +
+  
+  geom_vline(xintercept=as.Date(scope[[2,2]], "%m/%d/%Y"), linetype="longdash", color="yellow", size=1) +
+  geom_vline(xintercept=as.Date(scope[[3,2]], "%m/%d/%Y"), linetype="longdash", color="hotpink", size=1) +
+  geom_vline(xintercept=as.Date(scope[[4,2]], "%m/%d/%Y"), linetype="longdash", color="chartreuse", size=1) +
+  geom_vline(xintercept=as.Date(scope[[5,2]], "%m/%d/%Y"), linetype="longdash", color="cadetblue1", size=1) +
+  geom_vline(xintercept=as.Date(scope[[6,2]], "%m/%d/%Y"), linetype="longdash", color="red", size=1) +
+  geom_vline(xintercept=as.Date(scope[[7,2]], "%m/%d/%Y"), linetype="longdash", color="peru", size=1) +
+  geom_vline(xintercept=as.Date(scope[[8,2]], "%m/%d/%Y"), linetype="longdash", color="chocolate1", size=1) +
+  geom_vline(xintercept=as.Date(scope[[9,2]], "%m/%d/%Y"), linetype="longdash", color="darkorchid", size=1) +
+  geom_vline(xintercept=as.Date(scope[[10,2]], "%m/%d/%Y"), linetype="longdash", color="blue", size=1) +
+  geom_vline(xintercept=as.Date(scope[[11,2]], "%m/%d/%Y"), linetype="longdash", color="gray55", size=1) +
+  
+  #Washington, DC
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Washington, DC"),], aes(articles[which(articles$att==1 & articles$Scope=="Washington, DC"),10]), binwidth=30, color="chartreuse", size=1) +
+
+  #Tampa Bay Area, FL
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Tampa Bay Area, FL"),], aes(articles[which(articles$att==1 & articles$Scope=="Tampa Bay Area, FL"),10]), binwidth=30, color="gray55", size=1) +
+
+  #San Francisco Bay Area, CA
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="San Francisco Bay Area, CA"),], aes(articles[which(articles$att==1 & articles$Scope=="San Francisco Bay Area, CA"),10]), binwidth=30, color="cadetblue1", size=1) +
+
+  #San Diego, CA
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="San Diego, CA"),], aes(articles[which(articles$att==1 & articles$Scope=="San Diego, CA"),10]), binwidth=30, color="hotpink", size=1) +
+
+  #Portland, OR
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Portland, OR"),], aes(articles[which(articles$att==1 & articles$Scope=="Portland, OR"),10]), binwidth=30, color="darkorchid", size=1) +
+
+  #Los Angeles, CA
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Los Angeles, CA"),], aes(articles[which(articles$att==1 & articles$Scope=="Los Angeles, CA"),10]), binwidth=30, color="yellow", size=1) +
+
+  #Denver, CO
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Denver, CO"),], aes(articles[which(articles$att==1 & articles$Scope=="Denver, CO"),10]), binwidth=30, color="chocolate1", size=1) +
+
+  #Charlotte, NC
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Charlotte, NC"),], aes(articles[which(articles$att==1 & articles$Scope=="Charlotte, NC"),10]), binwidth=30, color="peru", size=1) +
+
+  #Baltimore, MD
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Baltimore, MD"),], aes(articles[which(articles$att==1 & articles$Scope=="Baltimore, MD"),10]), binwidth=30, color="blue", size=1) +
+
+  #Austin, TX
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="Austin, TX"),], aes(articles[which(articles$att==1 & articles$Scope=="Austin, TX"),10]), binwidth=30, color="red", size=1) +
+
+  #National
+  geom_freqpoly(data=articles[which(articles$att==1 & articles$Scope=="National"),], aes(articles[which(articles$att==1 & articles$Scope=="National"),10]), binwidth=30, color="white", size=1) +
+  
+  scale_x_date(date_breaks="2 months", date_labels="%b\n%Y", limits = c(as.Date("2017-09-01"),as.Date("2020-08-31"))) +
+  labs(x="", y="Count", title="Positive Articles") +
+    theme(plot.title=element_text(size=32,face="bold"), axis.text=element_text(size=18), axis.title=element_text(size=22,face="bold"))
+```
+
+```{r}
+saveRDS(articles, "c:/Users/Or Laptop/Documents/Content_analysis/articles.rds")
+```
+
