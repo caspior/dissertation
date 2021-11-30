@@ -129,7 +129,7 @@ articles[which(articles$attitude > 0),13] <- 1
 ```
 
 ```{r}
-articles <- articles[,-c(10:12)]
+articles <- articles[,-c(10:121)]
 ```
 
 
@@ -224,20 +224,20 @@ positive$Title <- row.names(positive)
 articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
 ```
 ```{r}
-articles[is.na(articles$negative),12] <- 0
-articles[is.na(articles$positive),13] <- 0
+articles[is.na(articles$negative),11] <- 0
+articles[is.na(articles$positive),12] <- 0
 articles$attitude <- articles$positive - articles$negative
 ```
 
 ```{r}
 articles$afinn <- 0
-articles[which(articles$attitude < 0),15] <- -1
-articles[which(articles$attitude == 0),15] <- 0
-articles[which(articles$attitude > 0),15] <- 1
+articles[which(articles$attitude < 0),14] <- -1
+articles[which(articles$attitude == 0),14] <- 0
+articles[which(articles$attitude > 0),14] <- 1
 ```
 
 ```{r}
-articles <- articles[,-c(12:14)]
+articles <- articles[,-c(11:13)]
 ```
 
 
@@ -331,26 +331,26 @@ positive$Title <- row.names(positive)
 articles <- merge.data.frame(articles,positive, by = "Title", all.x = T)
 ```
 ```{r}
-articles[is.na(articles$negative),13] <- 0
-articles[is.na(articles$positive),14] <- 0
+articles[is.na(articles$negative),12] <- 0
+articles[is.na(articles$positive),13] <- 0
 articles$attitude <- articles$positive - articles$negative
 ```
 
 ```{r}
 articles$nrc <- 0
-articles[which(articles$attitude < 0),16] <- -1
-articles[which(articles$attitude == 0),16] <- 0
-articles[which(articles$attitude > 0),16] <- 1
+articles[which(articles$attitude < 0),15] <- -1
+articles[which(articles$attitude == 0),15] <- 0
+articles[which(articles$attitude > 0),15] <- 1
 ```
 
 ```{r}
-articles <- articles[,-c(13:15)]
+articles <- articles[,-c(12:14)]
 ```
 
 ```{r}
 articles$att <- (articles$bing + articles$afinn + articles$nrc)/3
-articles[which(articles$att<0),14] <- floor(articles[which(articles$att<0),14])
-articles[which(articles$att>0),14] <- ceiling(articles[which(articles$att>0),14])
+articles[which(articles$att<0),13] <- floor(articles[which(articles$att<0),13])
+articles[which(articles$att>0),13] <- ceiling(articles[which(articles$att>0),13])
 articles$att <- as.integer(articles$att)
 ```
 
