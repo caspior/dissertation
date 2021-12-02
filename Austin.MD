@@ -62,6 +62,7 @@ The final step in my analysis included a linear regression with the Median Annua
 | Aggregate trips (dockless) | [PostGIS](Aus_counts.txt) | Austin's grid, Dockless cleaning output | Austin's grid (2) |
 | Calculate land use proportions | [PostGIS](Aus_lu.txt) | Austin's grid (2), [Austin's land uses](https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/fj9m-h5qy) | Austin's grid (3) |
 | Calculate bikeway variables | [PostGIS](Aus_bikeways.txt) | Austin's grid (3), [Bikeways shapefile (retrieved from OSM)](Aus_bikeways.zip), [Road centerlines](https://data.austintexas.gov/Locations-and-Maps/Street-Centerline/m5w3-uea6) | Austin's grid (4) |
+| Count proximate bikesharing stations | | Austin's grid (4), [Bikesharing stations](https://data.austintexas.gov/Transportation-and-Mobility/Austin-MetroBike-Kiosk-Locations/qd73-bsdg) | Austin's grid (5) |
 | Descriptive statistics | [R](Aus_Descriptive.R) | Outputs of trip log cleaning scripts, [Origin destination matrix](OD_matrix.csv) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_descriptive.html) |
 | Moran's I | [R Markdown](Aus_MoransI.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_MoransI.html) |
 | Random Forest | [R](Aus_RF.R), [R Markdown](Aus_RF.Rmd) | [Grid shapefile](Austin_grid.zip) | [R Markdown](https://htmlpreview.github.io/?https://github.com/caspior/dissertation/blob/main/Aus_RF.html) |
