@@ -18,3 +18,10 @@ UPDATE bcycle_stations SET geom = ST_SetSRID(ST_MakePoint(long,lat), 4269);
 -- Convert CRS
 
 ALTER TABLE bcycle_stations ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
+
+
+-- Buffer 'Austin_grid', spatial join
+
+WITH buffer AS (
+	SELECT id, ST_Buffer(geom, 400) AS geom
+	FROM austin_grid);
