@@ -1,0 +1,6 @@
+ALTER TABLE bcycle_stations
+ADD COLUMN lat double precision,
+ADD COLUMN long double precision;
+
+UPDATE bcycle_stations
+SET lat = substring("Location", '30\.\d+' ) :: double precision, long = substring("Location", '-97\.\d+' ) :: double precision;
