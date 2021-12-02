@@ -20,8 +20,18 @@ UPDATE bcycle_stations SET geom = ST_SetSRID(ST_MakePoint(long,lat), 4269);
 ALTER TABLE bcycle_stations ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
 
 
+--Create index 
+
+CREATE INDEX bcycle_stations_geom_idx
+  ON bcycle_stations
+  USING GIST (geom);
+
+
 -- Buffer 'Austin_grid', spatial join
 
 WITH buffer AS (
 	SELECT id, ST_Buffer(geom, 400) AS geom
-	FROM austin_grid);
+	FROM austin_grid)
+SELECT buffer.id, count(bcycle_stations.id) AS Bikeshare
+FROM buffer LEFT JOIN bcycle_stations ON ST_Contains(buffer.geom, bcycle_stations.geom)
+GROUP BY buffer.id;
