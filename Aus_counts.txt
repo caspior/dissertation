@@ -1,7 +1,10 @@
 --Add geometry from XY
 
-ALTER TABLE sample ADD COLUMN geom geometry(Point, 4269);
-UPDATE sample SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precision,"End Latitude"::double precision), 4269);
+ALTER TABLE starts ADD COLUMN geom geometry(Point, 4269);
+UPDATE starts SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precision,"End Latitude"::double precision), 4269);
+
+ALTER TABLE ends ADD COLUMN geom geometry(Point, 4269);
+UPDATE ends SET geom = ST_SetSRID(ST_MakePoint("End Longitude"::double precision,"End Latitude"::double precision), 4269);
 
 
 --Convert CRS
