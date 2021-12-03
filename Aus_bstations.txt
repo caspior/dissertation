@@ -27,11 +27,25 @@ CREATE INDEX bcycle_stations_geom_idx
   USING GIST (geom);
 
 
--- Buffer 'Austin_grid', spatial join
+-- Add Bikeshare variable
 
-WITH buffer AS (
-	SELECT id, ST_Buffer(geom, 400) AS geom
-	FROM austin_grid)
-SELECT buffer.id, count(bcycle_stations.id) AS Bikeshare
-FROM buffer LEFT JOIN bcycle_stations ON ST_Contains(buffer.geom, bcycle_stations.geom)
-GROUP BY buffer.id;
+ALTER TABLE austin_grid
+ADD COLUMN bikeshare integer;
+
+
+-- Calculate bikesharing stations within 400 meters
+
+With bcycle AS (
+-- Buffer
+	WITH buffer AS (
+		SELECT id, ST_Buffer(geom, 400) AS geom
+		FROM austin_grid)
+-- Spatial join
+	SELECT buffer.id, count(bcycle_stations.id) AS stations
+	FROM buffer LEFT JOIN bcycle_stations ON ST_Contains(buffer.geom, bcycle_stations.geom)
+	GROUP BY buffer.id)
+-- Join field
+UPDATE austin_grid
+SET bikeshare = bcycle.stations
+FROM bcycle
+WHERE austin_grid.id = bcycle.id;
