@@ -1,0 +1,28 @@
+-- Convert CRS
+
+ALTER TABLE bus_routes ALTER COLUMN geom TYPE Geometry(MultiLineString, 32139) USING ST_Transform(geom, 32139);
+ALTER TABLE bus_stops ALTER COLUMN geom TYPE Geometry(Point, 32139) USING ST_Transform(geom, 32139);
+
+
+-- Create Indices
+
+CREATE INDEX bus_routes_geom_idx
+  ON bus_routes
+  USING GIST (geom);
+
+CREATE INDEX bus_stops_geom_idx
+  ON bus_stops
+  USING GIST (geom);
+  
+
+-- Flag weekday stops
+
+ALTER TABLE bus_routes
+ADD COLUMN weekday integer;
+
+UPDATE bus_routes
+SET weekday = 0;
+
+UPDATE bus_routes
+SET weekday = 1
+WHERE servicenm = 'Weekday' OR servicenm = 'RAPID MONDAY TO WEDN' OR servicenm = 'UT Regular Weekday';
