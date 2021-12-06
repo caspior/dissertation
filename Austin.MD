@@ -20,7 +20,7 @@ All the data in this research obtained from openly available online databases.
 
 ### GIS
 For the purpose of advanced statistics and machine learning I aggregated the trips by polygons. I created a 0.001x0.001 degrees grid over the city of Austin using this [PyQGIS script](Aus_grid.py) and aggregated trips starts and ends for the entire examined period (Aug 16th 2018 - Feb 28th 2019), only weekday morning trips, only weekday evening trips, and only weekend and holiday trips using this [PostGIS script](Aus_counts.txt). I calculated land use proportions using this [PostGIS script](Aus_lu.txt). I calculated the bikeway variables using this [PostGIS script](Aus_bikeways.txt). I calculated the number of bikesharing stations within 400 meters using this [PostGIS script](Aus_bstations.txt).
-To move layers between PostgresSQL and QGIS I used QGIS's DB manager.
+To move layers between SQL DB and Shapefiles I used QGIS's DB manager.
 
 [Map gallery](Aus_maps.pdf)
 
