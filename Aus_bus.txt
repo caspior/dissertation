@@ -17,12 +17,19 @@ CREATE INDEX bus_stops_geom_idx
 
 -- Flag weekday stops
 
-ALTER TABLE bus_routes
-ADD COLUMN weekday integer;
+CREATE TABLE weekday_stops AS (
+	WITH weekday_routes AS (
+		SELECT *
+		FROM bus_routes
+		WHERE servicenm = 'Weekday' OR servicenm = 'RAPID MONDAY TO WEDN' OR servicenm = 'UT Regular Weekday')
+	SELECT bus_stops.stop_id, bus_stops.geom
+	FROM bus_stops JOIN weekday_routes ON ST_DWithin(bus_stops.geom, weekday_routes.geom, 25));
 
-UPDATE bus_routes
-SET weekday = 0;
+CREATE INDEX weekday_stops_geom_idx
+  ON weekday_stops
+  USING GIST (geom);
 
-UPDATE bus_routes
-SET weekday = 1
-WHERE servicenm = 'Weekday' OR servicenm = 'RAPID MONDAY TO WEDN' OR servicenm = 'UT Regular Weekday';
+SELECT austin_grid.id, count(weekday_stops) AS bus_stops
+FROM austin_grid LEFT JOIN weekday_stops ON ST_Contains(austin_grid.geom, weekday_stops.geom)
+GROUP BY austin_grid.id
+ORDER BY bus_stops DESC;
