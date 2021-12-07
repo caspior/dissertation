@@ -15,7 +15,7 @@ CREATE INDEX bus_stops_geom_idx
   USING GIST (geom);
   
 
--- Flag weekday stops
+-- Select weekday bus stops
 
 CREATE TABLE weekday_stops AS (
 	WITH weekday_routes AS (
@@ -30,12 +30,18 @@ CREATE INDEX weekday_stops_geom_idx
   ON weekday_stops
   USING GIST (geom);
 
+
+-- Create bus variables
+
 ALTER TABLE austin_grid
 ADD COLUMN bus integer,
 ADD COLUMN bus_stops integer;
 
 UPDATE austin_grid
 	SET bus = 0, bus_stops = 0;
+
+
+-- Count stops in each grid cell
 
 WITH stops AS (
 	SELECT austin_grid.id, count(weekday_stops) AS bus_stops
@@ -46,3 +52,9 @@ SET bus_stops = stops.bus_stops
 FROM stops
 WHERE austin_grid.id = stops.id;
 
+
+-- Update bus stops dummy
+
+UPDATE austin_grid
+SET bus = 1
+WHERE bus_stops > 0;
