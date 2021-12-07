@@ -23,13 +23,26 @@ CREATE TABLE weekday_stops AS (
 		FROM bus_routes
 		WHERE servicenm = 'Weekday' OR servicenm = 'RAPID MONDAY TO WEDN' OR servicenm = 'UT Regular Weekday')
 	SELECT bus_stops.stop_id, bus_stops.geom
-	FROM bus_stops JOIN weekday_routes ON ST_DWithin(bus_stops.geom, weekday_routes.geom, 25));
+	FROM bus_stops JOIN weekday_routes ON ST_DWithin(bus_stops.geom, weekday_routes.geom, 25)
+	GROUP BY bus_stops.stop_id, bus_stops.geom);
 
 CREATE INDEX weekday_stops_geom_idx
   ON weekday_stops
   USING GIST (geom);
 
-SELECT austin_grid.id, count(weekday_stops) AS bus_stops
-FROM austin_grid LEFT JOIN weekday_stops ON ST_Contains(austin_grid.geom, weekday_stops.geom)
-GROUP BY austin_grid.id
-ORDER BY bus_stops DESC;
+ALTER TABLE austin_grid
+ADD COLUMN bus integer,
+ADD COLUMN bus_stops integer;
+
+UPDATE austin_grid
+	SET bus = 0, bus_stops = 0;
+
+WITH stops AS (
+	SELECT austin_grid.id, count(weekday_stops) AS bus_stops
+	FROM austin_grid LEFT JOIN weekday_stops ON ST_Contains(austin_grid.geom, weekday_stops.geom)
+	GROUP BY austin_grid.id)
+UPDATE austin_grid
+SET bus_stops = stops.bus_stops
+FROM stops
+WHERE austin_grid.id = stops.id;
+
